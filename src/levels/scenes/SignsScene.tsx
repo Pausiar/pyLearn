@@ -4,6 +4,8 @@ import { label, rect } from '../../pixel/shapes'
 
 const WIDTH = 224
 const HEIGHT = 128
+/** El lienzo se dibuja al doble para que el texto salga nítido al mostrarlo a 448 px. */
+const SCALE = 2
 
 interface SignView {
   text: string
@@ -11,6 +13,7 @@ interface SignView {
 }
 
 function drawSign(context: CanvasRenderingContext2D, view: SignView): void {
+  context.setTransform(SCALE, 0, 0, SCALE, 0, 0)
   context.clearRect(0, 0, WIDTH, HEIGHT)
 
   rect(context, 0, 0, WIDTH, HEIGHT, '#0a0f24')
@@ -56,7 +59,7 @@ function drawSign(context: CanvasRenderingContext2D, view: SignView): void {
   label(context, value, 112, 62, size, view.lit ? '#ffd76a' : '#4a5270', 'center')
   context.restore()
 
-  label(context, 'CIUDAD DE NEÓN', 112, 104, 8, '#4a5575', 'center')
+  label(context, 'CIUDAD DE NEÓN', 112, 104, 8, '#7f8db8', 'center')
 }
 
 /** Lienzo del letrero: se enciende con el texto que le pasa el programa. */
@@ -100,9 +103,9 @@ export function SignsScene({ ref }: { ref?: Ref<SceneHandle> }) {
     <div className="field">
       <canvas
         ref={canvasRef}
-        className="field__canvas"
-        width={WIDTH}
-        height={HEIGHT}
+        className="field__canvas field__canvas--smooth"
+        width={WIDTH * SCALE}
+        height={HEIGHT * SCALE}
         role="img"
         aria-label={description}
       />

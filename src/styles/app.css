@@ -358,6 +358,11 @@
   image-rendering: pixelated;
 }
 
+/* Las escenas con texto se dibujan al doble y se muestran suaves, no pixeladas. */
+.field__canvas--smooth {
+  image-rendering: auto;
+}
+
 .field__caption {
   margin-top: var(--space-3);
   color: var(--color-muted);

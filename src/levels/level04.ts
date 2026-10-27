@@ -7,7 +7,7 @@ export const PLAYABLE_04: PlayableLevel = {
   title: 'Letreros de neón',
   concept: 'Concatenación y str()',
   story:
-    'La ciudad estrena un letrero de neón. Tiene que decir exactamente ABIERTO NEÓN 24H. El nombre de la ciudad y la hora están en variables: únelos con + y convierte el número con str().',
+    'La ciudad estrena un letrero de neón. Tiene que decir exactamente ABIERTO NEÓN 24H. En el editor ya están las variables ciudad y hora: únelas con +, convierte el número con str(hora) y pinta el resultado con letrero(texto).',
   hint:
     'letrero() recibe un texto. Une las partes con +, sin olvidar los espacios, y usa str(hora) para pegar el número. Debe quedar exactamente: ABIERTO NEÓN 24H. Consigue 3 estrellas con 5 líneas o menos.',
   starter: [

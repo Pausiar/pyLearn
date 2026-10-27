@@ -15,7 +15,7 @@ export const LEVEL_01 = {
   title: 'Primer vuelo',
   concept: 'Instrucciones en secuencia',
   story:
-    'El dron está en el hangar y cuatro cultivos se están secando. Escribe las instrucciones para que avance hasta cada uno y lo riegue. Python lee tus líneas en orden, de arriba abajo.',
+    'El dron está en el hangar, en la casilla 0, y los cuatro cultivos están en las casillas 1, 2, 3 y 4. Escribe avanzar() y regar() para regar los cuatro. Python lee tus líneas en orden, de arriba abajo.',
   hint:
     'Cada avanzar() mueve el dron una casilla a la derecha. regar() riega el cultivo que tiene debajo. Avanza, riega, y repite con cada planta. Consigue 3 estrellas con 8 líneas o menos.',
   starter: [

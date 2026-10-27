@@ -4,6 +4,8 @@ import { label, rect } from '../../pixel/shapes'
 
 const WIDTH = 224
 const HEIGHT = 128
+/** El lienzo se dibuja al doble para que el texto salga nítido al mostrarlo a 448 px. */
+const SCALE = 2
 
 interface BackpackView {
   ropes: number
@@ -12,6 +14,7 @@ interface BackpackView {
 }
 
 function drawBackpack(context: CanvasRenderingContext2D, view: BackpackView): void {
+  context.setTransform(SCALE, 0, 0, SCALE, 0, 0)
   context.clearRect(0, 0, WIDTH, HEIGHT)
 
   rect(context, 0, 0, WIDTH, HEIGHT, '#1d2633')
@@ -25,15 +28,15 @@ function drawBackpack(context: CanvasRenderingContext2D, view: BackpackView): vo
   rect(context, 60, 72, 30, 4, '#5c3a1c')
   rect(context, 71, 82, 8, 6, '#d9b44a')
 
-  label(context, 'CUERDAS', 124, 48, 8, '#9aa8c2')
-  rect(context, 190, 40, 12, 12, '#b07a3c')
-  label(context, String(view.ropes), 216, 49, 13, '#e8f1ff', 'right')
+  label(context, 'CUERDAS', 118, 48, 8, '#9aa8c2')
+  rect(context, 188, 40, 12, 12, '#b07a3c')
+  label(context, String(view.ropes), 214, 49, 13, '#e8f1ff', 'right')
 
-  label(context, 'CANTIMPLORAS', 124, 78, 8, '#9aa8c2')
-  rect(context, 190, 70, 12, 12, '#4aa8ff')
-  label(context, String(view.canteens), 216, 79, 13, '#e8f1ff', 'right')
+  label(context, 'CANTIMPLORAS', 118, 78, 8, '#9aa8c2')
+  rect(context, 188, 70, 12, 12, '#4aa8ff')
+  label(context, String(view.canteens), 214, 79, 13, '#e8f1ff', 'right')
 
-  label(context, view.placed ? 'Mochila preparada' : 'Mochila vacía', 124, 104, 8, view.placed ? '#8fd3a6' : '#6b7894')
+  label(context, view.placed ? 'Mochila preparada' : 'Mochila vacía', 118, 104, 8, view.placed ? '#8fd3a6' : '#9aa8c2')
 }
 
 /** Lienzo de la mochila: muestra lo que lleva el explorador. */
@@ -79,9 +82,9 @@ export function BackpackScene({ ref }: { ref?: Ref<SceneHandle> }) {
     <div className="field">
       <canvas
         ref={canvasRef}
-        className="field__canvas"
-        width={WIDTH}
-        height={HEIGHT}
+        className="field__canvas field__canvas--smooth"
+        width={WIDTH * SCALE}
+        height={HEIGHT * SCALE}
         role="img"
         aria-label={description}
       />

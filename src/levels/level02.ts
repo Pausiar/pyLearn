@@ -7,9 +7,9 @@ export const PLAYABLE_02: PlayableLevel = {
   title: 'Mensaje en botella',
   concept: 'print() y cadenas',
   story:
-    'La tormenta ha dejado al farero sin voz. El faro repite tres mensajes guardados, uno por línea. Si el barco los lee en orden, sabrá que no estáis solos.',
+    'La tormenta ha dejado al farero sin voz. El faro tiene que enviar tres mensajes, uno por línea y en este orden: SOS, PYLEARN y AYUDA. Cada mensaje se envía con print().',
   hint:
-    'print() escribe en la consola lo que le pases entre comillas, sin las comillas. Necesitas tres líneas: SOS, PYLEARN y AYUDA. Consigue 3 estrellas con 4 líneas o menos.',
+    'Cada print() escribe una línea. Prueba print("SOS") y, debajo, las otras dos llamadas con PYLEARN y AYUDA. Consigue 3 estrellas con 4 líneas o menos.',
   starter: ['# El faro está apagado.', '# Envía los tres mensajes, uno por línea.'].join('\n'),
   solution: ['print("SOS")', 'print("PYLEARN")', 'print("AYUDA")'].join('\n'),
   par: 4,

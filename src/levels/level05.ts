@@ -17,7 +17,7 @@ export const PLAYABLE_05: PlayableLevel = {
   title: 'El gran día de la granja',
   concept: 'Repaso del mundo 1',
   story:
-    'Último día en la granja. Anuncia la jornada con un mensaje —«Hoy riego 4 cultivos»— y riega los cuatro cultivos. Es el repaso del mundo 1: variables, texto, print y secuencia.',
+    'Último día en la granja. Primero anuncia la jornada con un solo print() que diga exactamente «Hoy riego 4 cultivos», usando una variable. Después riega los cuatro cultivos con el dron, como en el primer vuelo.',
   hint:
     'Guarda 4 en una variable y anúncialo con print("Hoy riego " + str(cultivos) + " cultivos"). Después repite avanzar() y regar() como en el primer vuelo. Consigue 3 estrellas con 10 líneas o menos.',
   starter: [

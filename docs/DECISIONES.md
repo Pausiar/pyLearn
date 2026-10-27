@@ -50,7 +50,9 @@ decide el resultado y devuelve la traza que el lienzo reproduce.
 
 - Mundo 1 completo: dron (1), faro (2), mochila (3), letrero (4) y repaso final (5).
 - Escenas en `src/levels/scenes/`: un lienzo por tipo, todos con `role="img"`, `aria-label` con el
-  estado y pie visible. Se dibujan con rectángulos, sin imágenes ni degradados.
+  estado y pie visible. Se dibujan con rectángulos, sin imágenes ni degradados. Las escenas con
+  texto (faro, mochila y letrero) se dibujan a 2× y se muestran con `image-rendering: auto`, para
+  que las letras no salgan pixeladas; el campo del dron sigue a 1× con píxeles duros.
 - Estrellas por nivel: 3 hasta su `par` de líneas, 2 hasta dos más, 1 por terminarlo.
 - El juicio es explícito y en español: cada nivel devuelve qué falta, no solo si está bien.
 - El catálogo decía «f-strings» para el nivel 4; como el intérprete aún no las tiene, el nivel

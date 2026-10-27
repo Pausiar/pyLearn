@@ -4,8 +4,11 @@ import { label, rect, truncate } from '../../pixel/shapes'
 
 const WIDTH = 224
 const HEIGHT = 128
+/** El lienzo se dibuja al doble para que el texto salga nítido al mostrarlo a 448 px. */
+const SCALE = 2
 
 function drawLighthouse(context: CanvasRenderingContext2D, lines: string[]): void {
+  context.setTransform(SCALE, 0, 0, SCALE, 0, 0)
   context.clearRect(0, 0, WIDTH, HEIGHT)
 
   rect(context, 0, 0, WIDTH, HEIGHT, '#0e1730')
@@ -51,7 +54,7 @@ function drawLighthouse(context: CanvasRenderingContext2D, lines: string[]): voi
   label(context, 'MENSAJES', 112, 30, 8, '#7f8db8')
 
   if (lines.length === 0) {
-    label(context, 'sin señal', 112, 52, 9, '#4a5575')
+    label(context, 'sin señal', 112, 52, 9, '#7f8db8')
     return
   }
 
@@ -110,9 +113,9 @@ export function LighthouseScene({ ref }: { ref?: Ref<SceneHandle> }) {
     <div className="field">
       <canvas
         ref={canvasRef}
-        className="field__canvas"
-        width={WIDTH}
-        height={HEIGHT}
+        className="field__canvas field__canvas--smooth"
+        width={WIDTH * SCALE}
+        height={HEIGHT * SCALE}
         role="img"
         aria-label={description}
       />
