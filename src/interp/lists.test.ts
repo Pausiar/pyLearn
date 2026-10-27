@@ -130,8 +130,8 @@ describe('listas: métodos', () => {
     expect(failure('print([1].sumar(2))').message).toContain('append()')
   })
 
-  it('dice que solo las listas tienen métodos', () => {
-    expect(failure('dato = 3\nprint(dato.append(1))').message).toContain('Solo las listas')
+  it('avisa cuando el valor no tiene métodos', () => {
+    expect(failure('dato = 3\nprint(dato.append(1))').message).toContain('no tiene métodos')
   })
 })
 

@@ -28,11 +28,14 @@ export interface Token {
 
 const KEYWORDS = new Set([
   'and',
+  'as',
   'break',
+  'class',
   'continue',
   'def',
   'elif',
   'else',
+  'except',
   'False',
   'for',
   'if',
@@ -41,9 +44,12 @@ const KEYWORDS = new Set([
   'not',
   'or',
   'pass',
+  'raise',
   'return',
   'True',
+  'try',
   'while',
+  'with',
 ])
 
 /** De más largo a más corto: así `**=` no se lee como `**` y luego `=`. */
@@ -65,6 +71,8 @@ const OPERATORS = [
   ')',
   '[',
   ']',
+  '{',
+  '}',
   '.',
   ',',
   ':',

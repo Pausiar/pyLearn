@@ -12,7 +12,7 @@ export type ApiFunction = (...args: Value[]) => Value | void
  * (que viajan como arrays para que ningún motor conozca el AST del intérprete)
  * y las funciones del alumno, que un motor llama como si fueran suyas.
  */
-export type Value = Scalar | Value[] | ApiFunction
+export type Value = Scalar | Value[] | { [key: string]: Value } | ApiFunction
 
 /** Distingue una función del alumno del resto de valores que viajan a la API. */
 export function isApiFunction(value: Value): value is ApiFunction {
@@ -31,7 +31,11 @@ export type Api = Record<string, (...args: Value[]) => Value | void>
  * error de la línea que lo provocó, con el número de línea correcto.
  */
 export class ApiError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    /** El tipo de error de Python que puede cazar el alumno: ValueError, KeyError… */
+    readonly kind: string = 'Error',
+  ) {
     super(message)
     this.name = 'ApiError'
   }

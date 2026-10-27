@@ -9,6 +9,8 @@ export class ProgramError extends Error {
   constructor(
     readonly line: number,
     message: string,
+    /** El tipo de error de Python: ValueError, KeyError… Se caza con except. */
+    readonly kind: string = 'Error',
   ) {
     super(message)
     this.name = 'ProgramError'

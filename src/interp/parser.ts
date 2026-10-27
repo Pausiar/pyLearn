@@ -54,6 +54,14 @@ class Parser {
           return this.forStatement()
         case 'def':
           return this.defStatement()
+        case 'class':
+          return this.classStatement()
+        case 'try':
+          return this.tryStatement()
+        case 'with':
+          return this.withStatement()
+        case 'raise':
+          return this.raiseStatement()
         case 'return':
           return this.returnStatement()
         case 'break':
@@ -71,6 +79,11 @@ class Parser {
         case 'elif':
         case 'else':
           throw new ProgramError(token.line, `Este «${token.value}» no tiene un if delante`)
+        case 'except':
+          throw new ProgramError(
+            token.line,
+            'El except va justo detrás de su try: try: … except: …',
+          )
         default:
           throw new ProgramError(token.line, `No puedo empezar una línea con «${token.value}»`)
       }
@@ -91,6 +104,19 @@ class Parser {
         type: 'setitem',
         target: expression.target,
         index: expression.index!,
+        value,
+        line: start.line,
+      }
+    }
+
+    if (expression.type === 'attribute' && this.at('op', '=')) {
+      this.next()
+      const value = this.expression()
+      this.endStatement()
+      return {
+        type: 'setattr',
+        target: expression.target,
+        name: expression.name,
         value,
         line: start.line,
       }
@@ -222,6 +248,84 @@ class Parser {
     const value = this.expression()
     this.endStatement()
     return { type: 'return', value, line }
+  }
+
+  private classStatement(): Statement {
+    const { line } = this.next()
+    const name = this.peek()
+    if (name.kind !== 'name') {
+      throw new ProgramError(line, 'Después de class hace falta el nombre de la clase')
+    }
+    this.next()
+
+    let base: string | null = null
+    if (this.match('op', '(')) {
+      const parent = this.peek()
+      if (parent.kind !== 'name') {
+        throw new ProgramError(line, 'La clase madre se escribe con su nombre: class Dragon(Monstruo):')
+      }
+      this.next()
+      base = parent.value
+      this.expect('op', ')', 'Falta cerrar el paréntesis de la clase madre')
+    }
+
+    this.expect('op', ':', 'A la definición de la clase le faltan los dos puntos (:) al final')
+    return { type: 'class', name: name.value, base, body: this.suite(line), line }
+  }
+
+  private tryStatement(): Statement {
+    const { line } = this.next()
+    this.expect('op', ':', 'Al try le faltan los dos puntos (:) al final')
+    const body = this.suite(line)
+
+    if (!this.at('keyword', 'except')) {
+      throw new ProgramError(line, 'Después del try hace falta un except: except ValueError: o except:')
+    }
+    this.next()
+
+    let kind: string | null = null
+    if (this.peek().kind === 'name') kind = this.next().value
+
+    this.expect('op', ':', 'Al except le faltan los dos puntos (:) al final')
+    return { type: 'try', body, handler: { kind, body: this.suite(line) }, line }
+  }
+
+  private withStatement(): Statement {
+    const { line } = this.next()
+    const value = this.expression()
+
+    if (!this.at('keyword', 'as')) {
+      throw new ProgramError(line, 'El with necesita «as»: with open("diario.txt") as diario:')
+    }
+    this.next()
+
+    const name = this.peek()
+    if (name.kind !== 'name') {
+      throw new ProgramError(line, 'Después de «as» hace falta el nombre del archivo')
+    }
+    this.next()
+
+    this.expect('op', ':', 'Al with le faltan los dos puntos (:) al final')
+    return { type: 'with', name: name.value, value, body: this.suite(line), line }
+  }
+
+  private raiseStatement(): Statement {
+    const { line } = this.next()
+    const name = this.peek()
+    if (name.kind !== 'name') {
+      throw new ProgramError(line, 'Después de raise hace falta el tipo de error, como ValueError')
+    }
+    this.next()
+
+    let value: Expression | null = null
+    if (this.at('op', '(')) {
+      this.next()
+      value = this.expression()
+      this.expect('op', ')', 'Falta cerrar el paréntesis del error')
+    }
+
+    this.endStatement()
+    return { type: 'raise', kind: name.value, value, line }
   }
 
   /** Bloque con sangría después de los dos puntos. */
@@ -364,33 +468,113 @@ class Parser {
       return this.postfix(base)
     }
 
-    if (token.kind === 'op' && token.value === '(') {
-      this.next()
-      const inner = this.expression()
-      this.expect('op', ')', 'Falta cerrar un paréntesis')
-      return this.postfix(inner)
-    }
+    if (token.kind === 'op' && token.value === '(') return this.postfix(this.parenAtom())
 
     if (token.kind === 'op' && token.value === '[') return this.postfix(this.listLiteral())
+
+    if (token.kind === 'op' && token.value === '{') return this.postfix(this.braceAtom())
 
     throw new ProgramError(token.line, 'Falta un valor')
   }
 
-  /** Una lista: [1, 2, 3], también vacía. */
+  /** Una lista o una comprensión: [1, 2, 3], [n for n in lista if n > 2]. */
   private listLiteral(): Expression {
     const { line } = this.next()
-    const items: Expression[] = []
 
-    if (!this.at('op', ']')) {
-      while (true) {
-        items.push(this.expression())
-        if (!this.match('op', ',')) break
-        if (this.at('op', ']')) break
-      }
+    if (this.at('op', ']')) {
+      this.next()
+      return { type: 'list', items: [], line }
+    }
+
+    const first = this.expression()
+    if (this.at('keyword', 'for')) return this.comprehension(first, line)
+
+    const items = [first]
+    while (this.match('op', ',')) {
+      if (this.at('op', ']')) break
+      items.push(this.expression())
     }
 
     this.expect('op', ']', 'Falta cerrar el corchete de la lista')
     return { type: 'list', items, line }
+  }
+
+  /** Lo que va detrás del primer valor de una comprensión: su for y su if. */
+  private comprehension(element: Expression, line: number): Expression {
+    this.next() // la palabra for de la comprensión
+    const target = this.peek()
+    if (target.kind !== 'name') {
+      throw new ProgramError(line, 'Después del for de la comprensión hace falta un nombre')
+    }
+    this.next()
+
+    if (!this.at('keyword', 'in')) {
+      throw new ProgramError(line, 'A la comprensión le falta el «in»: [n for n in lista]')
+    }
+    this.next()
+
+    const iterable = this.expression()
+    let condition: Expression | null = null
+    if (this.match('keyword', 'if')) condition = this.expression()
+
+    this.expect('op', ']', 'Falta cerrar el corchete de la comprensión')
+    return { type: 'comprehension', element, target: target.value, iterable, condition, line }
+  }
+
+  /** Un paréntesis: agrupa o forma una tupla, (1, 2). */
+  private parenAtom(): Expression {
+    const { line } = this.next()
+
+    if (this.at('op', ')')) {
+      this.next()
+      return { type: 'tuple', items: [], line }
+    }
+
+    const inner = this.expression()
+    if (!this.at('op', ',')) {
+      this.expect('op', ')', 'Falta cerrar un paréntesis')
+      return inner
+    }
+
+    const items = [inner]
+    while (this.match('op', ',')) {
+      if (this.at('op', ')')) break
+      items.push(this.expression())
+    }
+    this.expect('op', ')', 'Falta cerrar el paréntesis de la tupla')
+    return { type: 'tuple', items, line }
+  }
+
+  /** Una llave: diccionario {clave: valor} o conjunto {a, b}. */
+  private braceAtom(): Expression {
+    const { line } = this.next()
+
+    if (this.at('op', '}')) {
+      this.next()
+      return { type: 'dict', pairs: [], line }
+    }
+
+    const first = this.expression()
+    if (this.at('op', ':')) {
+      this.next()
+      const pairs = [{ key: first, value: this.expression() }]
+      while (this.match('op', ',')) {
+        if (this.at('op', '}')) break
+        const key = this.expression()
+        this.expect('op', ':', 'Cada clave del diccionario necesita sus dos puntos (:) y su valor')
+        pairs.push({ key, value: this.expression() })
+      }
+      this.expect('op', '}', 'Falta cerrar la llave del diccionario')
+      return { type: 'dict', pairs, line }
+    }
+
+    const items = [first]
+    while (this.match('op', ',')) {
+      if (this.at('op', '}')) break
+      items.push(this.expression())
+    }
+    this.expect('op', '}', 'Falta cerrar la llave del conjunto')
+    return { type: 'set', items, line }
   }
 
   /** Lo que va detrás de un valor: posiciones, rebanadas y métodos de lista. */
@@ -419,14 +603,14 @@ class Parser {
 
       const method = this.tokens[this.index + 1]
       const parenthesis = this.tokens[this.index + 2]
-      if (
-        this.at('op', '.') &&
-        method?.kind === 'name' &&
-        parenthesis?.kind === 'op' &&
-        parenthesis.value === '('
-      ) {
+      if (this.at('op', '.') && method?.kind === 'name') {
         this.next()
-        expression = this.methodCall(expression, this.next())
+        const name = this.next()
+        if (parenthesis?.kind === 'op' && parenthesis.value === '(') {
+          expression = this.methodCall(expression, name)
+        } else {
+          expression = { type: 'attribute', target: expression, name: name.value, line: name.line }
+        }
         continue
       }
 

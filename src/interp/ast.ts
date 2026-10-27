@@ -19,8 +19,19 @@ export type Statement =
       body: Statement[]
       line: number
     }
+  | {
+      type: 'try'
+      body: Statement[]
+      /** Un solo except, con su tipo de error o sin él. */
+      handler: { kind: string | null; body: Statement[] }
+      line: number
+    }
+  | { type: 'raise'; kind: string; value: Expression | null; line: number }
+  | { type: 'with'; name: string; value: Expression; body: Statement[]; line: number }
   | { type: 'return'; value: Expression | null; line: number }
   | { type: 'setitem'; target: Expression; index: Expression; value: Expression; line: number }
+  | { type: 'setattr'; target: Expression; name: string; value: Expression; line: number }
+  | { type: 'class'; name: string; base: string | null; body: Statement[]; line: number }
   | { type: 'break'; line: number }
   | { type: 'continue'; line: number }
   | { type: 'pass'; line: number }
@@ -45,3 +56,15 @@ export type Expression =
       line: number
     }
   | { type: 'method'; target: Expression; name: string; args: Expression[]; line: number }
+  | { type: 'attribute'; target: Expression; name: string; line: number }
+  | { type: 'dict'; pairs: { key: Expression; value: Expression }[]; line: number }
+  | { type: 'set'; items: Expression[]; line: number }
+  | { type: 'tuple'; items: Expression[]; line: number }
+  | {
+      type: 'comprehension'
+      element: Expression
+      target: string
+      iterable: Expression
+      condition: Expression | null
+      line: number
+    }

@@ -20,6 +20,8 @@ export interface RunResult {
   /** Lo que el programa ha impreso con print(), en orden. */
   output: string[]
   error?: InterpError
+  /** Los archivos que el programa ha dejado abiertos, con su contenido. */
+  files?: Record<string, string>
 }
 
 export { STEP_LIMIT }
@@ -65,8 +67,13 @@ export function run(source: string, api: Api = {}): RunResult {
   try {
     interpreter.execute(parse(tokens))
   } catch (error) {
-    return failure(error, lines, interpreter.printed)
+    return withFiles(failure(error, lines, interpreter.printed), interpreter.files)
   }
 
-  return { lines, output: interpreter.printed }
+  return withFiles({ lines, output: interpreter.printed }, interpreter.files)
+}
+
+/** Añade los archivos al resultado solo cuando el programa ha usado alguno. */
+function withFiles(result: RunResult, files: Record<string, string>): RunResult {
+  return Object.keys(files).length === 0 ? result : { ...result, files }
 }

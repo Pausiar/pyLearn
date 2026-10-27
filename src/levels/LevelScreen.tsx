@@ -62,7 +62,7 @@ function Unavailable({ levelId }: { levelId: number }) {
         <h1 ref={headingRef} tabIndex={-1}>
           {`Nivel ${levelId}: ${summary?.title ?? ''}`}
         </h1>
-        <p>Este nivel llega en una próxima entrega. Ya puedes jugar los veinticinco primeros.</p>
+        <p>Este nivel todavía no tiene minijuego: llega en una próxima entrega.</p>
       </header>
       <a className="btn btn--secondary" href="#/">
         Volver al mapa

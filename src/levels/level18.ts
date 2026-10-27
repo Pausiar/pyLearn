@@ -12,7 +12,7 @@ export const PLAYABLE_18: PlayableLevel = {
     'Cada método cambia la lista: append(valor) añade al final, remove(valor) quita el que digas, insert(posicion, valor) mete en medio, pop(0) saca el primero y devuelve lo que saca, y sort() deja la lista en orden alfabético. Consigue 3 estrellas con 10 líneas o menos.',
   starter: [
     'pedidos = ["barbacoa", "margarita", "cuatro quesos"]',
-    '# Añade "napolitana", quita "margarita", pon "tarta" la primera,',
+    '# Añade "anchoas", quita "margarita", pon "tarta" la primera,',
     '# sirve la primera, ordena el resto y anuncia la cola.',
   ].join('\n'),
   solution: [

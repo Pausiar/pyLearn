@@ -10,15 +10,22 @@ import type { Scalar } from './types'
 import {
   describeType,
   display,
+  isDict,
   isList,
   isRange,
+  isSet,
+  isTuple,
+  iterableItems,
   rangeLength,
   truthy,
+  uniqueItems,
   type RuntimeValue,
 } from './values'
 
 export interface BuiltinContext {
   print(text: string): void
+  /** Los archivos que el programa tiene abiertos, en memoria. */
+  files: Map<string, string>
 }
 
 export type Builtin = (args: RuntimeValue[], line: number, context: BuiltinContext) => RuntimeValue
@@ -67,7 +74,7 @@ function toNumber(value: RuntimeValue, line: number, name: string): number {
   if (typeof value === 'string') {
     const parsed = Number(value.trim())
     if (value.trim() === '' || Number.isNaN(parsed)) {
-      throw new ProgramError(line, `${name}() no entiende «${value}» como número`)
+      throw new ProgramError(line, `${name}() no entiende «${value}» como número`, 'ValueError')
     }
     return parsed
   }
@@ -90,10 +97,11 @@ const BUILTIN_LIST: [string, Builtin][] = [
       const value = args[0]!
       if (typeof value === 'string') return value.length
       if (isRange(value)) return rangeLength(value)
-      if (isList(value)) return value.items.length
+      if (isList(value) || isTuple(value) || isSet(value)) return value.items.length
+      if (isDict(value)) return value.entries.size
       throw new ProgramError(
         line,
-        `len() necesita un texto, un range o una lista y ha recibido ${describeType(value)}`,
+        `len() necesita un texto, un range, una lista, una tupla, un conjunto o un diccionario y ha recibido ${describeType(value)}`,
       )
     },
   ],
@@ -154,6 +162,96 @@ const BUILTIN_LIST: [string, Builtin][] = [
     (args, line) => {
       expectCount(args, line, 'max', 1, 10)
       return pick(args, line, 'max', true)
+    },
+  ],
+  [
+    'list',
+    (args, line) => {
+      expectCount(args, line, 'list', 0, 1)
+      if (args.length === 0) return { kind: 'list', items: [] }
+      return { kind: 'list', items: iterableItems(args[0]!, line, 'list') }
+    },
+  ],
+  [
+    'tuple',
+    (args, line) => {
+      expectCount(args, line, 'tuple', 0, 1)
+      if (args.length === 0) return { kind: 'tuple', items: [] }
+      return { kind: 'tuple', items: iterableItems(args[0]!, line, 'tuple') }
+    },
+  ],
+  [
+    'set',
+    (args, line) => {
+      expectCount(args, line, 'set', 0, 1)
+      if (args.length === 0) return { kind: 'set', items: [] }
+      return { kind: 'set', items: uniqueItems(iterableItems(args[0]!, line, 'set')) }
+    },
+  ],
+  [
+    'sorted',
+    (args, line) => {
+      expectCount(args, line, 'sorted', 1, 1)
+      const items = iterableItems(args[0]!, line, 'sorted')
+      if (items.length === 0) return { kind: 'list', items: [] }
+
+      const numbers = items.every((item) => typeof item === 'number')
+      const texts = items.every((item) => typeof item === 'string')
+      if (!numbers && !texts) {
+        throw new ProgramError(line, 'sorted() solo ordena números o textos, sin mezclarlos')
+      }
+
+      const ordered = [...items]
+      ordered.sort((left, right) => {
+        if (typeof left === 'number' && typeof right === 'number') return left - right
+        if (typeof left === 'string' && typeof right === 'string') return left < right ? -1 : 1
+        return 0
+      })
+      return { kind: 'list', items: ordered }
+    },
+  ],
+  [
+    'sum',
+    (args, line) => {
+      expectCount(args, line, 'sum', 1, 1)
+      let total = 0
+      for (const item of iterableItems(args[0]!, line, 'sum')) {
+        if (typeof item !== 'number') {
+          throw new ProgramError(line, 'sum() solo suma números')
+        }
+        total += item
+      }
+      return total
+    },
+  ],
+  [
+    'open',
+    (args, line, context) => {
+      expectCount(args, line, 'open', 1, 2)
+      const name = args[0]
+      if (typeof name !== 'string') {
+        throw new ProgramError(
+          line,
+          `open() necesita el nombre del archivo entre comillas y ha recibido ${describeType(name)}`,
+        )
+      }
+
+      const mode = args.length === 2 ? args[1] : 'r'
+      if (typeof mode !== 'string' || (mode !== 'r' && mode !== 'w')) {
+        throw new ProgramError(line, 'open() solo entiende "r" para leer y "w" para escribir')
+      }
+
+      if (mode === 'r' && !context.files.has(name)) {
+        throw new ProgramError(
+          line,
+          `No existe el archivo «${name}»: créalo con open("${name}", "w")`,
+          'FileNotFoundError',
+        )
+      }
+
+      if (mode === 'w') context.files.set(name, '')
+
+      return { kind: 'file', name, mode, content: '', closed: false, store: context.files }
     },
   ],
 ]

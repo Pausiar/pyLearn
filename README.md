@@ -13,10 +13,10 @@ Sitio estático: sin backend, sin cuentas, sin llamadas de red en ejecución.
 | 1 | Intérprete real (lexer, parser, AST, traza) | Hecha |
 | 2 | Mapa completo e interfaz de progreso | Hecha |
 | 3 | Motor de minijuegos y test de soluciones | Hecha |
-| 4 a 11 | Un mundo por fase | Mundos 1 a 5 hechos; faltan 3 |
+| 4 a 11 | Un mundo por fase | Mundos 1 a 8 hechos |
 | 12 | Pulido, accesibilidad y rendimiento | Pendiente |
 
-Jugables ahora: los veinticinco niveles de los mundos 1 a 5. La demo visual de referencia vive en
+Jugables ahora: los cuarenta niveles de los mundos 1 a 8. La demo visual de referencia vive en
 `reference/pylearn-demo.html`.
 
 ## Comandos

@@ -1,5 +1,31 @@
 /** Un paso visual de un minijuego. Cada escena consume los suyos y dibuja ese estado. */
 export type SceneStep =
+  | { kind: 'agenda'; contacts: { name: string; channel: string }[]; sent: boolean }
+  | {
+      kind: 'census'
+      planets: { name: string; people: number }[]
+      total: number
+      listed: boolean
+    }
+  | {
+      kind: 'album'
+      cards: string[]
+      unique: string[]
+      ficha: [string, number] | null
+      delivered: boolean
+    }
+  | {
+      kind: 'hunt'
+      monsters: { name: string; level: number }[]
+      caught: string[]
+      done: boolean
+    }
+  | {
+      kind: 'archive'
+      rooms: { name: string; hall: string; pieces: number }[]
+      visited: string[]
+      delivered: boolean
+    }
   | { kind: 'drone'; x: number; watered: number[] }
   | { kind: 'lighthouse'; lines: string[] }
   | { kind: 'backpack'; ropes: number; canteens: number; placed: boolean }
@@ -37,6 +63,27 @@ export type SceneStep =
       kind: 'restaurant'
       trace: { action: string; ingrediente: string }[]
       served: string[]
+      done: boolean
+    }
+  | { kind: 'bridge'; actions: { puente: string; action: 'cruzado' | 'desvio' | 'cortado' }[] }
+  | { kind: 'dice'; rolls: number[]; average: number; shown: boolean }
+  | { kind: 'diary'; lines: string[]; counted: boolean }
+  | { kind: 'plague'; lines: { text: string; ok: boolean }[] }
+  | { kind: 'quest'; room: string; visited: string[]; item: string | null; done: boolean }
+  | { kind: 'pet'; name: string; energy: number; recorded: boolean }
+  | { kind: 'workshop'; name: string; pieces: string[]; ready: boolean | null }
+  | { kind: 'beast'; name: string; life: number; born: boolean }
+  | {
+      kind: 'race'
+      times: number[]
+      order: number[] | null
+      pilot: string | null
+      secret: number | null
+    }
+  | {
+      kind: 'forge'
+      hero: { nombre: string; vida: number; pasos: number } | null
+      log: string[]
       done: boolean
     }
 

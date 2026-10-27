@@ -27,18 +27,40 @@ Fase 1. Cuatro piezas con una responsabilidad cada una, en `src/interp/`:
   `continue`, `def` con parámetros y `return`, recursión, listas con índices, rebanadas y métodos,
   y `print()` que acumula salida.
 - `run.ts`: la única función que ven los niveles, `run(code, api)`. Devuelve `{ lines, output,
-  error? }` y el error lleva `line` y un mensaje en español.
+  error?, files? }`: los archivos solo aparecen si el programa ha abierto alguno, y el error lleva
+  `line` y un mensaje en español.
 
 Lenguaje cubierto: enteros y decimales, textos, booleanos y `None`; `+ - * / // % **`;
 comparaciones, `and`, `or`, `not` e `in`; `range`, `len`, `int`, `float`, `str`, `bool`, `abs`,
-`round`, `min` y `max`; listas con literales, índices (también negativos), rebanadas, `for` sobre
-listas y los métodos `append`, `insert`, `remove`, `pop` y `sort`. **No** incluye diccionarios,
-tuplas, conjuntos, f-strings ni clases: llegan con sus mundos. Las funciones `def` de la Fase 5
-admiten parámetros con valor por defecto, que se calculan al definir la función, y un nombre que
-una función asigna es local desde el principio, como en Python: leerlo antes de darle valor es un
-error y no toca el global. Las funciones también cruzan la frontera de la API: un motor puede
-recibirlas y llamarlas (`aprender(saltar_valla)`, `tanda(preparar)`, `maquina(cambio)`), y así el
-nivel decide con qué datos se ejecuta la receta del alumno.
+`round`, `min`, `max`, `list`, `tuple`, `set`, `sorted`, `sum` y `open`; listas con literales,
+índices (también negativos), rebanadas, `for` sobre listas y los métodos `append`, `insert`,
+`remove`, `pop`, `index` y `sort`; textos con `upper`, `lower`, `strip`, `replace` y `split`.
+
+El mundo 6 añade **datos de verdad**: diccionarios con claves hashables (números, textos,
+booleanos y tuplas), `get`, `keys`, `values`, `items` y `pop`; tuplas inmutables y conjuntos sin
+repetidos; comprensiones de lista con su `if` y con la variable dentro, como en Python; y
+`sorted`/`sum` sobre cualquier cosa recorrible. Los diccionarios cruzan la API como objetos de
+JavaScript y las tuplas y los conjuntos como arrays, así que los motores juzgan el contenido y no
+solo lo impreso.
+
+El mundo 7 añade **errores con nombre y archivos**: `try`/`except` con un tipo (`ValueError`,
+`KeyError`, `IndexError`, `ZeroDivisionError`, `FileNotFoundError`), `raise` y archivos simulados
+en memoria con `open`, `with … as`, `write`, `read`, `readlines` y `close`; recorrer un archivo da
+sus líneas. También entran los módulos `random` (`seed`, `randint` y `choice` sobre un generador
+propio, así que una semilla da siempre las mismas tiradas) y `math` (`sqrt`, `floor`, `ceil` y
+`pi`). Los niveles que juzgan archivos los leen de `RunResult.files`: nunca se toca el disco.
+
+El mundo 8 añade **objetos**: `class`, `__init__`, métodos con `self`, atributos de instancia y de
+clase, herencia con `super()` y polimorfismo. Dentro de una clase solo van métodos y asignaciones
+de atributos; el intérprete construye la clase al ejecutarla, como Python, y `super()` resuelve la
+clase madre de la clase donde está escrito el método.
+
+Las funciones `def` admiten parámetros con valor por defecto, que se calculan al definir la
+función, y un nombre que una función asigna es local desde el principio, como en Python: leerlo
+antes de darle valor es un error y no toca el global. Las funciones también cruzan la frontera de
+la API: un motor puede recibirlas y llamarlas (`aprender(saltar_valla)`, `tanda(preparar)`,
+`probar(ir)`, `jugar(crear, mover)`), y así el nivel decide con qué datos se ejecuta la receta del
+alumno. Lo que sigue sin existir son las f-strings, `import` y las excepciones propias.
 
 Las listas cruzan la frontera de la API como arrays: `enviar(vagones)` recibe
 `['carbón', 'madera', …]` y lo que un motor devuelve en forma de array vuelve a Python como una
@@ -73,6 +95,15 @@ decide el resultado y devuelve la traza que el lienzo reproduce.
   alumno), pizzas a medida (22, parámetros con valor por defecto), la expendedora (23, `return` como
   valor que usa la máquina), laboratorios (24, ámbito local y global) y la cocina modular (25,
   funciones que llaman a funciones).
+- Mundo 6 completo: la agenda (26, diccionarios, claves y `get`), el censo (27, `items`, `keys` y
+  `values`), los cromos únicos (28, tuplas y conjuntos), cazamonstruos (29, comprensiones) y el
+  archivo del museo (30, estructuras anidadas).
+- Mundo 7 completo: el puente (31, `try`/`except` con `ValueError`), los dados (32, `random` y
+  `math` con semilla fija), el diario (33, archivos con `open` y `with`), cazabichos (34, depurar
+  tres fallos lógicos) y la aventura de texto (35, funciones, diccionarios y azar).
+- Mundo 8 completo: la mascota (36, clases, instancias y atributos), el taller (37, `__init__`,
+  métodos y `self`), la herencia (38, `super()` y polimorfismo), la carrera (39, ordenar y buscar) y
+  el jefe final (40, el motor juega el minijuego del alumno).
 - Escenas en `src/levels/scenes/`: un lienzo por tipo, todos con `role="img"`, `aria-label` con el
   estado y pie visible. Se dibujan con rectángulos, sin imágenes ni degradados. Las escenas con
   texto (faro, mochila y letrero) se dibujan a 2× y se muestran con `image-rendering: auto`, para
@@ -81,8 +112,10 @@ decide el resultado y devuelve la traza que el lienzo reproduce.
 - El juicio es explícito y en español: cada nivel devuelve qué falta, no solo si está bien.
 - El catálogo decía «f-strings» para el nivel 4; como el intérprete aún no las tiene, el nivel
   enseña concatenación con `+` y `str()`, y el catálogo se ha corregido.
-- `registry.test.ts` recorre los veinticinco niveles: la solución completa, el código inicial no, y
-  la solución cabe en su par. Un nivel nuevo con una solución rota rompe los tests.
+- `registry.test.ts` recorre los cuarenta niveles: la solución completa, el código inicial no, y la
+  solución cabe en su par. Un nivel nuevo con una solución rota rompe los tests. El código inicial
+  siempre se ejecuta sin errores, también en el nivel de depuración: sus tres fallos son de lógica,
+  no de sintaxis, para que el alumno pueda ver lo que sale por la consola y compararlo.
 - **Un nivel puede juzgarse en varias situaciones**: `finish(result, code)` recibe el código para
   volver a ejecutarlo en otro escenario. El semáforo corre una vez con la luz roja (lo que ya se ve
   en pantalla) y otra con la verde; el guardián repite el programa con los tres pases. Así no pasa
@@ -158,7 +191,7 @@ restantes, sonido, modo libre, Pyodide.
 
 ## Verificación
 
-- `npm run lint`, `npm test` (337 pruebas), `npm run build` y `npx tsc --noEmit` pasan.
+- `npm run lint`, `npm test` (514 pruebas), `npm run build` y `npx tsc --noEmit` pasan.
 - Hallmark `sloplint --scope app` sobre `src`: **0 FAIL, 0 WARN**, 10 avisos de `7b` cubiertos por
   la excepción declarada (la paleta la fija el encargo). En la Fase 1 destapó 6 SVG sin
   `aria-hidden` legible para su análisis estático (lo llevaban por spread); ahora está literal en

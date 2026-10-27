@@ -4,9 +4,10 @@ import { LEVELS } from './catalog'
 import { PLAYABLE_LEVELS, isPlayable, playableLevel } from './registry'
 
 describe('registro de niveles', () => {
-  it('publica los niveles 1 a 25', () => {
+  it('publica los cuarenta niveles', () => {
     expect(PLAYABLE_LEVELS.map((level) => level.id)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+      26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
     ])
   })
 
@@ -14,16 +15,18 @@ describe('registro de niveles', () => {
     for (const level of PLAYABLE_LEVELS) {
       const summary = LEVELS.find((entry) => entry.id === level.id)
       // El catálogo marca los jefes con el prefijo «Jefe:» y en minúscula; el nivel no lleva el prefijo.
-      expect(summary?.title.replace(/^Jefe: /, '').toLowerCase()).toBe(level.title.toLowerCase())
+      expect(summary?.title.replace(/^Jefe(?: final)?: /, '').toLowerCase()).toBe(
+        level.title.toLowerCase(),
+      )
       expect(summary?.concept).toBe(level.concept)
     }
   })
 
   it('responde por id y distingue lo que aún no existe', () => {
     expect(playableLevel(3)?.title).toBe('La mochila')
-    expect(playableLevel(26)).toBeUndefined()
-    expect(isPlayable(25)).toBe(true)
-    expect(isPlayable(26)).toBe(false)
+    expect(playableLevel(41)).toBeUndefined()
+    expect(isPlayable(40)).toBe(true)
+    expect(isPlayable(41)).toBe(false)
   })
 
   for (const level of PLAYABLE_LEVELS) {
