@@ -8,78 +8,92 @@ const HEIGHT = 128
 /** El lienzo se dibuja al doble para que el texto salga nítido al mostrarlo a 448 px. */
 const SCALE = 2
 
-/** El campo grande, en cuadrícula: 10 filas de 10 cultivos. */
-const GRID = 10
-const CELL = 11
+/** Cien cultivos en una cuadrícula de 20 columnas por 5 filas. */
+const COLS = 20
+const CELL_W = 10.4
+const CELL_H = 14
 const ORIGIN_X = 6
-const ORIGIN_Y = 8
+const ORIGIN_Y = 14
 
 interface IrrigationView {
   watered: number[]
   position: number
 }
 
-function cellAt(crop: number): { x: number; y: number } {
+const RESTING: IrrigationView = { watered: [], position: 0 }
+
+function cellCenter(crop: number): { x: number; y: number } {
   const index = Math.min(Math.max(crop, 1), CROP_COUNT) - 1
   return {
-    x: ORIGIN_X + (index % GRID) * CELL,
-    y: ORIGIN_Y + Math.floor(index / GRID) * CELL,
+    x: ORIGIN_X + (index % COLS) * CELL_W,
+    y: ORIGIN_Y + Math.floor(index / COLS) * CELL_H,
   }
 }
 
-function drawIrrigation(context: CanvasRenderingContext2D, view: IrrigationView): void {
+function drawIrrigation(context: CanvasRenderingContext2D, view: IrrigationView, elapsed: number, reduced: boolean): void {
   context.setTransform(SCALE, 0, 0, SCALE, 0, 0)
   context.clearRect(0, 0, WIDTH, HEIGHT)
 
-  rect(context, 0, 0, WIDTH, HEIGHT, '#15251a')
-  rect(context, ORIGIN_X - 2, ORIGIN_Y - 2, GRID * CELL + 2, GRID * CELL + 2, '#1f3a28')
+  // Tierra y surcos en planos.
+  rect(context, 0, 0, WIDTH, HEIGHT, '#2a2118')
+  rect(context, 0, 0, WIDTH, 2, '#3a2d20')
+  rect(context, 0, 118, WIDTH, 10, '#1a140e')
 
-  for (let index = 0; index < CROP_COUNT; index += 1) {
-    const x = ORIGIN_X + (index % GRID) * CELL
-    const y = ORIGIN_Y + Math.floor(index / GRID) * CELL
-    const regado = view.watered.includes(index + 1)
-    rect(context, x, y, CELL - 1, CELL - 1, regado ? '#3fb34f' : '#4a3a2a')
-    if (regado) rect(context, x + 3, y + 3, 4, 4, '#9ce8a2')
+  const watered = new Set(view.watered)
+  for (let crop = 1; crop <= CROP_COUNT; crop += 1) {
+    const { x, y } = cellCenter(crop)
+    const done = watered.has(crop)
+    // El último cultivo regado brilla un instante.
+    const fresh = done && crop === view.position && !reduced && elapsed < 400
+    rect(context, x, y + 6, 6, 4, '#4a3a28')
+    rect(context, x + 1, y + 2, 4, 4, done ? (fresh ? '#9be38f' : '#4ce07a') : '#6a5a40')
   }
 
+  // El dron: se queda sobre la última casilla pisada.
   if (view.position >= 1) {
-    const { x, y } = cellAt(view.position)
-    rect(context, x + 1, y + 1, CELL - 3, CELL - 3, '#4aa8ff')
+    const { x, y } = cellCenter(view.position)
+    const dx = x + 3
+    const dy = y - 2
+    rect(context, dx - 4, dy, 8, 3, '#8ad0ff')
+    rect(context, dx - 1, dy + 3, 2, 2, '#8ad0ff')
+    if (!reduced) {
+      const drop = (elapsed % 400) / 400
+      context.fillStyle = 'rgba(138, 208, 255, 0.85)'
+      context.fillRect(dx - 0.5, dy + 5 + drop * 4, 1, 2)
+    }
   }
 
-  const panelX = ORIGIN_X + GRID * CELL + 12
-  const panelWidth = WIDTH - panelX - 8
-  rect(context, panelX, 12, panelWidth, 52, '#1f3a28')
-
-  label(context, 'CULTIVOS', panelX + 8, 30, 8, '#9fd7a8')
-  label(context, `${view.watered.length} / ${CROP_COUNT}`, panelX + 8, 50, 17, '#eaf7ee')
-  rect(context, panelX + 8, 56, panelWidth - 16, 4, '#2c4a35')
-  rect(
-    context,
-    panelX + 8,
-    56,
-    Math.round(((panelWidth - 16) * view.watered.length) / CROP_COUNT),
-    4,
-    '#4caf50',
-  )
-
-  label(context, `Dron en la casilla ${view.position}`, 8, 124, 8, '#7fa88a')
-  label(context, 'RIEGO EN BUCLE', WIDTH - 8, 124, 8, '#7fa88a', 'right')
+  // Panel con la cuenta de los cultivos regados.
+  rect(context, 4, 100, 150, 22, 'rgba(10,18,38,0.85)')
+  label(context, `dron en ${view.position}   regados: ${view.watered.length}/${CROP_COUNT}`, 10, 115, 8, '#e8f1ff')
+  if (view.watered.length === CROP_COUNT) label(context, '¡Campo listo!', 214, 115, 8, '#ffe08a', 'right')
+  label(context, 'RIEGO EN BUCLE', 214, 124, 6, '#7fa88a', 'right')
 }
 
 /** Lienzo del campo grande: cuántos cultivos van regados de los cien. */
 export function IrrigationScene({ ref }: { ref?: Ref<SceneHandle> }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const aliveRef = useRef(true)
-  const [view, setView] = useState<IrrigationView>({ watered: [], position: 0 })
+  const bornRef = useRef(0)
+  const [view, setView] = useState<IrrigationView>(RESTING)
 
   useEffect(() => {
     aliveRef.current = true
+    bornRef.current = performance.now()
     const context = canvasRef.current?.getContext('2d')
-    if (context) drawIrrigation(context, view)
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    let frame = 0
+    if (context) {
+      const tick = (now: number) => {
+        drawIrrigation(context, view, now - bornRef.current, reduced)
+        if (!reduced) frame = window.requestAnimationFrame(tick)
+      }
+      tick(performance.now())
+    }
 
     return () => {
       aliveRef.current = false
+      window.cancelAnimationFrame(frame)
     }
   }, [view])
 
@@ -91,13 +105,13 @@ export function IrrigationScene({ ref }: { ref?: Ref<SceneHandle> }) {
       if (!aliveRef.current) return
       setView({ watered: step.watered, position: step.position })
       await new Promise<void>((resolve) => {
-        window.setTimeout(resolve, reduced ? 0 : 160)
+        window.setTimeout(resolve, reduced ? 0 : 180)
       })
     }
   }, [])
 
   const reset = useCallback(() => {
-    setView({ watered: [], position: 0 })
+    setView(RESTING)
   }, [])
 
   useImperativeHandle(ref, () => ({ play, reset }), [play, reset])
