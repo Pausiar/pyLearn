@@ -51,6 +51,9 @@ decide el resultado y devuelve la traza que el lienzo reproduce.
 - Mundo 1 completo: dron (1), faro (2), mochila (3), letrero (4) y repaso final (5).
 - Mundo 2 completo: cohete (6, operadores), tienda (7, `input()` simulado con `int()` y `str()`),
   cerradura (8, booleanos y comparaciones), semáforo (9, `if`/`else`) y guardián (10, `elif`).
+- Mundo 3 completo: riego en bucle (11, `for` y `range` con cien cultivos), minero (12, `while` y
+  contadores), caja fuerte (13, `for` con `if` y `break`), escáner (14, `range` con paso, `continue`
+  y `break`) y campo del jefe (15, bucles anidados).
 - Escenas en `src/levels/scenes/`: un lienzo por tipo, todos con `role="img"`, `aria-label` con el
   estado y pie visible. Se dibujan con rectángulos, sin imágenes ni degradados. Las escenas con
   texto (faro, mochila y letrero) se dibujan a 2× y se muestran con `image-rendering: auto`, para
@@ -59,7 +62,7 @@ decide el resultado y devuelve la traza que el lienzo reproduce.
 - El juicio es explícito y en español: cada nivel devuelve qué falta, no solo si está bien.
 - El catálogo decía «f-strings» para el nivel 4; como el intérprete aún no las tiene, el nivel
   enseña concatenación con `+` y `str()`, y el catálogo se ha corregido.
-- `registry.test.ts` recorre los diez niveles: la solución completa, el código inicial no, y la
+- `registry.test.ts` recorre los quince niveles: la solución completa, el código inicial no, y la
   solución cabe en su par. Un nivel nuevo con una solución rota rompe los tests.
 - **Un nivel puede juzgarse en varias situaciones**: `finish(result, code)` recibe el código para
   volver a ejecutarlo en otro escenario. El semáforo corre una vez con la luz roja (lo que ya se ve
@@ -70,6 +73,18 @@ decide el resultado y devuelve la traza que el lienzo reproduce.
   booleano de verdad, no un número disfrazado.
 - Las cinco escenas nuevas siguen el patrón de las del mundo 1: lienzo a 2× con texto nítido,
   `role="img"`, `aria-label` con el estado y pie visible.
+- En el mundo 3 las funciones de la API devuelven valores (`hay_piedra()`, `probar()`, `revisar()`),
+  no solo registran acciones. El escáner gasta una lectura en cada `revisar()` y `vacio()` es
+  gratis: por eso `continue` no es decorativo. El juicio mira además lo que deja de pasar: al 14 le
+  suspende que el pasillo 9 siga revisándose (faltó el `break`) y al 13 que se prueben las seis
+  contraseñas cuando el acierto llegó en la cuarta.
+- El campo del 11 riega cien cultivos, así que su traza guarda un fotograma cada diez cultivos: con
+  los 200 pasos del programa la animación duraría minutos. El 15 hace lo mismo por casilla regada
+  (doce fotogramas).
+- El catálogo decía «lista ficticia» para el 13 y «en serpiente» para el 15. Como el intérprete
+  todavía no tiene listas y el riego en serpiente exigiría condiciones que ese nivel no enseña, el
+  catálogo se ha corregido a «Prueba las contraseñas de una caja fuerte» y «Riega las 12 casillas
+  de una cuadrícula».
 
 ## Progreso
 
@@ -121,7 +136,7 @@ restantes, sonido, modo libre, Pyodide.
 
 ## Verificación
 
-- `npm run lint`, `npm test` (99 pruebas), `npm run build` y `npx tsc --noEmit` pasan.
+- `npm run lint`, `npm test` (213 pruebas), `npm run build` y `npx tsc --noEmit` pasan.
 - Hallmark `sloplint --scope app` sobre `src`: **0 FAIL, 0 WARN**, 10 avisos de `7b` cubiertos por
   la excepción declarada (la paleta la fija el encargo). En la Fase 1 destapó 6 SVG sin
   `aria-hidden` legible para su análisis estático (lo llevaban por spread); ahora está literal en

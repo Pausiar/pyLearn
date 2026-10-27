@@ -7,7 +7,7 @@ export const PLAYABLE_09: PlayableLevel = {
   title: 'El semáforo',
   concept: 'if y else',
   story:
-    'El peatón solo cruza con la luz en verde. Consulta la luz con luz() y decide: si está en verde, cruzar(); si no, esperar(). Tu programa se probará dos veces, con la luz roja y con la luz verde, y tiene que salir bien en las dos.',
+    'El peatón solo cruza con la luz en verde. La luz se consulta con luz(), que devuelve el texto «verde» o «rojo». Decide con un if: si está en verde, cruzar(); si no, esperar(). Tu programa se probará dos veces, con la luz roja y con la luz verde, y tiene que salir bien en las dos.',
   hint:
     'luz() devuelve «rojo» o «verde». Compara con == dentro de un if para el verde y pon un else con esperar(). Consigue 3 estrellas con 5 líneas o menos.',
   starter: [

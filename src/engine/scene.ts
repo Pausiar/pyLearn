@@ -15,6 +15,11 @@ export type SceneStep =
       greenWaited: boolean
     }
   | { kind: 'gate'; visitors: { pass: string; door: string }[] }
+  | { kind: 'irrigation'; watered: number[]; position: number }
+  | { kind: 'mine'; rocks: number; picadas: number }
+  | { kind: 'vault'; tried: number[]; opened: boolean }
+  | { kind: 'scanner'; readings: number[]; boxes: number; reached: number }
+  | { kind: 'grid'; watered: number[]; cell: number }
 
 /** Lo que el lienzo expone al nivel: reproducir una traza y volver al estado inicial. */
 export interface SceneHandle {

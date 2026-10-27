@@ -7,7 +7,7 @@ export const PLAYABLE_07: PlayableLevel = {
   title: 'La tienda',
   concept: 'input() simulado, int() y str()',
   story:
-    'El pan cuesta 2 monedas y el cliente se lleva 3 barras, pero esas cifras las tienes que preguntar con input(): el cliente responde «2» y «3». Convierte las respuestas a números con int(), multiplica y anuncia el total con print(). La caja tiene que decir exactamente «Son 6 monedas».',
+    'El pan cuesta 2 monedas y el cliente se lleva 3 barras, pero esas cifras las tienes que preguntar. Hazle dos preguntas con input(): a la primera responde «2» y a la segunda «3». Convierte las respuestas a números con int(), multiplica las dos y anuncia el total con print(). La caja tiene que decir exactamente «Son 6 monedas».',
   hint:
     'input("¿Cuánto cuesta el pan? ") devuelve un texto: guárdalo y conviértelo con int(). Haz lo mismo con las barras, multiplica y monta el mensaje con str(total). Consigue 3 estrellas con 5 líneas o menos.',
   starter: [

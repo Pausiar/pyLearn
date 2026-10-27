@@ -4,8 +4,10 @@ import { LEVELS } from './catalog'
 import { PLAYABLE_LEVELS, isPlayable, playableLevel } from './registry'
 
 describe('registro de niveles', () => {
-  it('publica los niveles 1 a 10', () => {
-    expect(PLAYABLE_LEVELS.map((level) => level.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+  it('publica los niveles 1 a 15', () => {
+    expect(PLAYABLE_LEVELS.map((level) => level.id)).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    ])
   })
 
   it('coincide con el catálogo en título y concepto', () => {
@@ -19,9 +21,9 @@ describe('registro de niveles', () => {
 
   it('responde por id y distingue lo que aún no existe', () => {
     expect(playableLevel(3)?.title).toBe('La mochila')
-    expect(playableLevel(11)).toBeUndefined()
-    expect(isPlayable(10)).toBe(true)
-    expect(isPlayable(11)).toBe(false)
+    expect(playableLevel(16)).toBeUndefined()
+    expect(isPlayable(15)).toBe(true)
+    expect(isPlayable(16)).toBe(false)
   })
 
   for (const level of PLAYABLE_LEVELS) {

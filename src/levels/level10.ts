@@ -7,7 +7,7 @@ export const PLAYABLE_10: PlayableLevel = {
   title: 'El guardián',
   concept: 'elif y condiciones anidadas',
   story:
-    'El guardián del castillo recibe a tres visitantes con pase A, B y C. Pregunta el pase con pase() y decide: con A, puerta_grande(); con B, puerta_pequena(); con cualquier otro, denegar(). Tu programa se probará con los tres pases.',
+    'El guardián del castillo recibe a tres visitantes con pase A, B y C. El pase se consulta con pase(), que devuelve el texto «A», «B» o «C». Decide: con A, puerta_grande(); con B, puerta_pequena(); con cualquier otro, denegar(). Tu programa se probará con los tres pases.',
   hint:
     'Empieza con if para el pase A, sigue con elif para el B y cierra con else para el que no entra. Consigue 3 estrellas con 7 líneas o menos.',
   starter: [

@@ -7,7 +7,7 @@ export const PLAYABLE_06: PlayableLevel = {
   title: 'Combustible',
   concept: 'Números y operadores',
   story:
-    'El cohete lleva 7 tanques de 12 toneladas cada uno y gasta 15 en el despegue. Calcula lo que le queda con variables y operadores, y avisa a la torre con torre(toneladas) para que arranque.',
+    'El cohete lleva 7 tanques de 12 toneladas cada uno y gasta 15 en el despegue. Multiplica los tanques por las toneladas de cada uno, réstale lo gastado, guarda el resultado en una variable y avisa a la torre con torre(): solo arranca si recibe la cifra exacta.',
   hint:
     'Multiplica los tanques por lo que lleva cada uno y réstale lo gastado. Después llama a torre() con esa variable. Consigue 3 estrellas con 6 líneas o menos.',
   starter: [

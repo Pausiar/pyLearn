@@ -7,7 +7,7 @@ export const PLAYABLE_08: PlayableLevel = {
   title: 'La cerradura',
   concept: 'Booleanos, comparaciones y lógica',
   story:
-    'El cohete solo despega con piloto, y para fichar hay que abrir tres candados. En el editor están los datos: edad = 15 y altura = 140. Cada candado se abre con candado(numero, True o False): el 1 pide una edad mayor de 12, el 2 una altura de 130 o más y el 3 las dos condiciones a la vez con and.',
+    'El cohete solo despega con piloto, y para fichar hay que abrir tres candados. En el editor están los datos: edad = 15 y altura = 140. Cada candado se abre con candado(numero, condición): el número va del 1 al 3 y la condición tiene que ser True o False de verdad, no un número. El 1 pide una edad mayor de 12, el 2 una altura de 130 o más, y el 3 las dos condiciones anteriores unidas con and.',
   hint:
     'Pásale a candado() el resultado de una comparación: edad > 12, altura >= 130 y, en el tercero, las dos unidas con and para que sea True solo si se cumplen ambas. Consigue 3 estrellas con 6 líneas o menos.',
   starter: [
