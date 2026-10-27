@@ -67,6 +67,15 @@ precedencia, queda cubierto por las pruebas del intérprete nuevo.
 - **Sin JavaScript no hay app**: el intérprete corre en el navegador, así que un SPA no puede pintar
   contenido sin scripts. Se añade un `<noscript>` que lo explica. Es una desviación consciente del
   suelo de Hallmark.
+- **Diálogos**: `.sheet:not([open])` devuelve el `display: none` a un `<dialog>` cerrado. Sin esa
+  regla, el `display: flex` del panel ganaba al estilo del navegador y los ajustes aparecían al
+  final de la página, debajo del mapa.
+- **Anti-copia del enunciado**: copiar el texto del enunciado deja en el portapapeles una frase de
+  broma (`DECOY_TEXT`) en lugar del texto. Es una decisión de producto del encargo; no impide leer,
+  seleccionar ni usar lectores de pantalla.
+- **Aviso al pegar**: pegar tres o más líneas con contenido, o 120 caracteres en una sola línea,
+  muestra un aviso en la consola; el pegado se hace igual. La heurística vive en
+  `app/clipboard.ts` y tiene pruebas.
 - **Mapa**: la geometría es la de la demo (radio 26, jefes 36 con anillo, zigzag de 95 unidades,
   paso 78 y 112 por mundo).
 

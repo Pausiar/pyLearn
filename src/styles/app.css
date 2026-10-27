@@ -364,6 +364,11 @@
   overflow: hidden;
 }
 
+/* El display de arriba gana al que el navegador pone a un dialog cerrado. */
+.sheet:not([open]) {
+  display: none;
+}
+
 .sheet::backdrop {
   background: var(--color-scrim);
 }

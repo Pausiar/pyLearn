@@ -1,14 +1,16 @@
-import { useRef, type KeyboardEvent } from 'react'
+import { useRef, type ClipboardEvent, type KeyboardEvent } from 'react'
+import { looksLikeWholeProgram, WHOLE_PROGRAM_WARNING } from '../app/clipboard'
 
 interface CodeEditorProps {
   value: string
   onChange(value: string): void
   disabled?: boolean
+  onWarning?(message: string): void
 }
 
 const INDENT = '    '
 
-export function CodeEditor({ value, onChange, disabled = false }: CodeEditorProps) {
+export function CodeEditor({ value, onChange, disabled = false, onWarning }: CodeEditorProps) {
   const ref = useRef<HTMLTextAreaElement>(null)
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -32,6 +34,11 @@ export function CodeEditor({ value, onChange, disabled = false }: CodeEditorProp
     })
   }
 
+  function handlePaste(event: ClipboardEvent<HTMLTextAreaElement>) {
+    if (!looksLikeWholeProgram(event.clipboardData.getData('text'))) return
+    onWarning?.(WHOLE_PROGRAM_WARNING)
+  }
+
   return (
     <div className="editor">
       <label className="visually-hidden" htmlFor="codigo">
@@ -50,6 +57,7 @@ export function CodeEditor({ value, onChange, disabled = false }: CodeEditorProp
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={handleKeyDown}
+        onPaste={handlePaste}
       />
       <p className="editor__note">Tab sangra. Escape sale del editor.</p>
     </div>

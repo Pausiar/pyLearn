@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ClipboardEvent } from 'react'
+import { DECOY_TEXT } from '../app/clipboard'
 import { applyRun, type Progress } from '../app/progress'
 import { Console, type ConsoleTone } from '../editor/Console'
 import { CodeEditor } from '../editor/CodeEditor'
@@ -27,6 +28,16 @@ interface Message {
 }
 
 const RECOVERY = '\nTe has quedado sin vidas. Vuelves a empezar con 3 vidas.'
+
+/** Copiar el enunciado no copia el enunciado: deja una frase de broma en el portapapeles. */
+function handleStatementCopy(event: ClipboardEvent<HTMLElement>) {
+  const selection = window.getSelection()
+  if (!selection || selection.isCollapsed) return
+  if (!event.currentTarget.contains(selection.anchorNode)) return
+
+  event.preventDefault()
+  event.clipboardData.setData('text/plain', DECOY_TEXT)
+}
 
 export function LevelScreen({ levelId, progress, onChange }: LevelScreenProps) {
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -111,7 +122,7 @@ export function LevelScreen({ levelId, progress, onChange }: LevelScreenProps) {
 
   return (
     <main className="shell level">
-      <header className="level__head">
+      <header className="level__head" onCopy={handleStatementCopy}>
         <h1 ref={headingRef} tabIndex={-1}>
           Nivel 1: Primer vuelo
         </h1>
@@ -131,7 +142,12 @@ export function LevelScreen({ levelId, progress, onChange }: LevelScreenProps) {
 
         <section className="panel" aria-labelledby="code-title">
           <h2 id="code-title">Tu código Python</h2>
-          <CodeEditor value={code} onChange={setCode} disabled={running} />
+          <CodeEditor
+            value={code}
+            onChange={setCode}
+            disabled={running}
+            onWarning={(text) => setMessage({ tone: 'error', text })}
+          />
 
           <div className="actions">
             <button
