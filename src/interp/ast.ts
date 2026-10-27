@@ -14,6 +14,7 @@ export type Statement =
   | { type: 'for'; target: string; iterable: Expression; body: Statement[]; line: number }
   | { type: 'def'; name: string; params: string[]; body: Statement[]; line: number }
   | { type: 'return'; value: Expression | null; line: number }
+  | { type: 'setitem'; target: Expression; index: Expression; value: Expression; line: number }
   | { type: 'break'; line: number }
   | { type: 'continue'; line: number }
   | { type: 'pass'; line: number }
@@ -26,3 +27,15 @@ export type Expression =
   | { type: 'boolop'; op: 'and' | 'or'; left: Expression; right: Expression; line: number }
   | { type: 'compare'; left: Expression; ops: string[]; comparators: Expression[]; line: number }
   | { type: 'call'; callee: string; args: Expression[]; line: number }
+  | { type: 'list'; items: Expression[]; line: number }
+  | {
+      type: 'subscript'
+      target: Expression
+      /** Posición, o principio de la rebanada; null cuando no lo hay. */
+      index: Expression | null
+      /** Final de la rebanada; null en un índice suelto o en una rebanada abierta. */
+      end: Expression | null
+      slice: boolean
+      line: number
+    }
+  | { type: 'method'; target: Expression; name: string; args: Expression[]; line: number }

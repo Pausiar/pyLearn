@@ -5,10 +5,17 @@
 export type Scalar = number | string | boolean | null
 
 /**
- * Funciones que un nivel ofrece al código del alumno. Pueden devolver un valor
- * simple (el input() simulado de la tienda, la luz del semáforo) o nada.
+ * Lo que un motor de nivel recibe y devuelve: los valores simples y las listas,
+ * que viajan como arrays para que ningún motor conozca el AST del intérprete.
  */
-export type Api = Record<string, (...args: Scalar[]) => Scalar | void>
+export type Value = Scalar | Value[]
+
+/**
+ * Funciones que un nivel ofrece al código del alumno. Pueden devolver un valor
+ * simple (el input() simulado de la tienda, la luz del semáforo), una lista (los
+ * vagones del tren) o nada.
+ */
+export type Api = Record<string, (...args: Value[]) => Value | void>
 
 /**
  * Error lanzado por la API de un minijuego. El intérprete lo convierte en un

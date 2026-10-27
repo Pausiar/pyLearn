@@ -1,4 +1,4 @@
-import { ApiError, type Api, type Scalar } from '../interp/types'
+import { ApiError, type Api, type Value } from '../interp/types'
 import type { SceneStep } from './scene'
 
 /** Pasillos impares del almacén: los que alcanza el escáner. */
@@ -36,7 +36,7 @@ export function createScanner(): ScannerState {
   return { readings: [], boxes: 0 }
 }
 
-function checkAisle(value: Scalar | undefined): number {
+function checkAisle(value: Value | undefined): number {
   if (
     typeof value !== 'number' ||
     !Number.isInteger(value) ||

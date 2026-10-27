@@ -82,6 +82,20 @@ class Parser {
   private simpleStatement(): Statement {
     const start = this.peek()
     let expression = this.expression()
+
+    if (expression.type === 'subscript' && !expression.slice && this.at('op', '=')) {
+      this.next()
+      const value = this.expression()
+      this.endStatement()
+      return {
+        type: 'setitem',
+        target: expression.target,
+        index: expression.index!,
+        value,
+        line: start.line,
+      }
+    }
+
     const targets: string[] = []
 
     while (this.at('op', '=')) {
@@ -258,7 +272,7 @@ class Parser {
     const ops: string[] = []
     const comparators: Expression[] = []
 
-    while (this.at('op') && COMPARISONS.has(this.peek().value)) {
+    while ((this.at('op') && COMPARISONS.has(this.peek().value)) || this.at('keyword', 'in')) {
       ops.push(this.next().value)
       comparators.push(this.arithmetic())
     }
@@ -314,37 +328,115 @@ class Parser {
 
     if (token.kind === 'number') {
       this.next()
-      return { type: 'constant', value: Number(token.value), line: token.line }
+      return this.postfix({ type: 'constant', value: Number(token.value), line: token.line })
     }
 
     if (token.kind === 'string') {
       this.next()
-      return { type: 'constant', value: token.value, line: token.line }
+      return this.postfix({ type: 'constant', value: token.value, line: token.line })
     }
 
     if (token.kind === 'keyword') {
       if (token.value === 'True' || token.value === 'False' || token.value === 'None') {
         this.next()
         const value = token.value === 'None' ? null : token.value === 'True'
-        return { type: 'constant', value, line: token.line }
+        return this.postfix({ type: 'constant', value, line: token.line })
       }
       throw new ProgramError(token.line, `Aquí no puedo usar «${token.value}»`)
     }
 
     if (token.kind === 'name') {
       this.next()
-      if (this.at('op', '(')) return this.call(token)
-      return { type: 'name', name: token.value, line: token.line }
+      const base: Expression = this.at('op', '(')
+        ? this.call(token)
+        : { type: 'name', name: token.value, line: token.line }
+      return this.postfix(base)
     }
 
     if (token.kind === 'op' && token.value === '(') {
       this.next()
       const inner = this.expression()
       this.expect('op', ')', 'Falta cerrar un paréntesis')
-      return inner
+      return this.postfix(inner)
     }
 
+    if (token.kind === 'op' && token.value === '[') return this.postfix(this.listLiteral())
+
     throw new ProgramError(token.line, 'Falta un valor')
+  }
+
+  /** Una lista: [1, 2, 3], también vacía. */
+  private listLiteral(): Expression {
+    const { line } = this.next()
+    const items: Expression[] = []
+
+    if (!this.at('op', ']')) {
+      while (true) {
+        items.push(this.expression())
+        if (!this.match('op', ',')) break
+        if (this.at('op', ']')) break
+      }
+    }
+
+    this.expect('op', ']', 'Falta cerrar el corchete de la lista')
+    return { type: 'list', items, line }
+  }
+
+  /** Lo que va detrás de un valor: posiciones, rebanadas y métodos de lista. */
+  private postfix(base: Expression): Expression {
+    let expression = base
+
+    while (true) {
+      if (this.at('op', '[')) {
+        const { line } = this.next()
+        let index: Expression | null = null
+        let end: Expression | null = null
+        let slice = false
+
+        if (!this.at('op', ':')) index = this.expression()
+
+        if (this.at('op', ':')) {
+          slice = true
+          this.next()
+          if (!this.at('op', ']')) end = this.expression()
+        }
+
+        this.expect('op', ']', 'Falta cerrar el corchete')
+        expression = { type: 'subscript', target: expression, index, end, slice, line }
+        continue
+      }
+
+      const method = this.tokens[this.index + 1]
+      const parenthesis = this.tokens[this.index + 2]
+      if (
+        this.at('op', '.') &&
+        method?.kind === 'name' &&
+        parenthesis?.kind === 'op' &&
+        parenthesis.value === '('
+      ) {
+        this.next()
+        expression = this.methodCall(expression, this.next())
+        continue
+      }
+
+      return expression
+    }
+  }
+
+  private methodCall(target: Expression, name: Token): Expression {
+    this.expect('op', '(', 'Después del nombre del método hacen falta los paréntesis')
+    const args: Expression[] = []
+
+    if (!this.at('op', ')')) {
+      while (true) {
+        args.push(this.expression())
+        if (!this.match('op', ',')) break
+        if (this.at('op', ')')) break
+      }
+    }
+
+    this.expect('op', ')', 'Falta cerrar un paréntesis')
+    return { type: 'method', target, name: name.value, args, line: name.line }
   }
 
   private call(name: Token): Expression {

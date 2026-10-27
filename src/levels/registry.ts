@@ -13,6 +13,11 @@ import { PLAYABLE_12 } from './level12'
 import { PLAYABLE_13 } from './level13'
 import { PLAYABLE_14 } from './level14'
 import { PLAYABLE_15 } from './level15'
+import { PLAYABLE_16 } from './level16'
+import { PLAYABLE_17 } from './level17'
+import { PLAYABLE_18 } from './level18'
+import { PLAYABLE_19 } from './level19'
+import { PLAYABLE_20 } from './level20'
 import type { PlayableLevel } from './types'
 
 /** Los niveles que se pueden jugar hoy, en orden. */
@@ -32,6 +37,11 @@ export const PLAYABLE_LEVELS: readonly PlayableLevel[] = [
   PLAYABLE_13,
   PLAYABLE_14,
   PLAYABLE_15,
+  PLAYABLE_16,
+  PLAYABLE_17,
+  PLAYABLE_18,
+  PLAYABLE_19,
+  PLAYABLE_20,
 ]
 
 const BY_ID = new Map<number, PlayableLevel>(PLAYABLE_LEVELS.map((level) => [level.id, level]))

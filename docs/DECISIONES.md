@@ -24,13 +24,20 @@ Fase 1. Cuatro piezas con una responsabilidad cada una, en `src/interp/`:
 - `parser.ts`: descenso recursivo con la **precedencia real de Python** (`2 + 3 * 2` da 8; las
   potencias agrupan por la derecha) y comparaciones encadenadas (`1 < x < 10`).
 - `evaluator.ts`: recorre el AST con ámbitos encadenados, `if/elif/else`, `while`, `for`, `break`,
-  `continue`, `def` con parámetros y `return`, recursión, y `print()` que acumula salida.
+  `continue`, `def` con parámetros y `return`, recursión, listas con índices, rebanadas y métodos,
+  y `print()` que acumula salida.
 - `run.ts`: la única función que ven los niveles, `run(code, api)`. Devuelve `{ lines, output,
   error? }` y el error lleva `line` y un mensaje en español.
 
 Lenguaje cubierto: enteros y decimales, textos, booleanos y `None`; `+ - * / // % **`;
-comparaciones, `and`, `or` y `not`; `range`, `len`, `int`, `float`, `str`, `bool`, `abs`, `round`,
-`min` y `max`. **No** incluye listas, diccionarios, f-strings ni clases: llegan con sus mundos.
+comparaciones, `and`, `or`, `not` e `in`; `range`, `len`, `int`, `float`, `str`, `bool`, `abs`,
+`round`, `min` y `max`; listas con literales, índices (también negativos), rebanadas, `for` sobre
+listas y los métodos `append`, `insert`, `remove`, `pop` y `sort`. **No** incluye diccionarios,
+tuplas, conjuntos, f-strings ni clases: llegan con sus mundos.
+
+Las listas cruzan la frontera de la API como arrays: `enviar(vagones)` recibe
+`['carbón', 'madera', …]` y lo que un motor devuelve en forma de array vuelve a Python como una
+lista de verdad, así que los niveles 16 a 20 juzgan el contenido y no solo lo impreso.
 
 Límites: 20 000 sentencias y 200 llamadas anidadas, para que un bucle infinito o una recursión sin
 fondo terminen con un mensaje y no cuelguen la pestaña. La traza que anima el nivel es la lista de
@@ -54,6 +61,9 @@ decide el resultado y devuelve la traza que el lienzo reproduce.
 - Mundo 3 completo: riego en bucle (11, `for` y `range` con cien cultivos), minero (12, `while` y
   contadores), caja fuerte (13, `for` con `if` y `break`), escáner (14, `range` con paso, `continue`
   y `break`) y campo del jefe (15, bucles anidados).
+- Mundo 4 completo: el tren (16, listas, índices y `len`), el repartidor (17, `for` sobre listas),
+  la pizzería (18, `append`, `insert`, `remove`, `pop` y `sort`), rebanadas (19, cortes y el
+  operador `in`) y la mochila del aventurero (20, filtrar y ordenar con bucle y condicional).
 - Escenas en `src/levels/scenes/`: un lienzo por tipo, todos con `role="img"`, `aria-label` con el
   estado y pie visible. Se dibujan con rectángulos, sin imágenes ni degradados. Las escenas con
   texto (faro, mochila y letrero) se dibujan a 2× y se muestran con `image-rendering: auto`, para
@@ -62,7 +72,7 @@ decide el resultado y devuelve la traza que el lienzo reproduce.
 - El juicio es explícito y en español: cada nivel devuelve qué falta, no solo si está bien.
 - El catálogo decía «f-strings» para el nivel 4; como el intérprete aún no las tiene, el nivel
   enseña concatenación con `+` y `str()`, y el catálogo se ha corregido.
-- `registry.test.ts` recorre los quince niveles: la solución completa, el código inicial no, y la
+- `registry.test.ts` recorre los veinte niveles: la solución completa, el código inicial no, y la
   solución cabe en su par. Un nivel nuevo con una solución rota rompe los tests.
 - **Un nivel puede juzgarse en varias situaciones**: `finish(result, code)` recibe el código para
   volver a ejecutarlo en otro escenario. El semáforo corre una vez con la luz roja (lo que ya se ve
@@ -136,7 +146,7 @@ restantes, sonido, modo libre, Pyodide.
 
 ## Verificación
 
-- `npm run lint`, `npm test` (213 pruebas), `npm run build` y `npx tsc --noEmit` pasan.
+- `npm run lint`, `npm test` (280 pruebas), `npm run build` y `npx tsc --noEmit` pasan.
 - Hallmark `sloplint --scope app` sobre `src`: **0 FAIL, 0 WARN**, 10 avisos de `7b` cubiertos por
   la excepción declarada (la paleta la fija el encargo). En la Fase 1 destapó 6 SVG sin
   `aria-hidden` legible para su análisis estático (lo llevaban por spread); ahora está literal en

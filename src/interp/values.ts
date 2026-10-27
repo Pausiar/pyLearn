@@ -23,10 +23,20 @@ export interface FunctionValue {
   scope: Scope
 }
 
-export type RuntimeValue = Scalar | RangeValue | FunctionValue
+/** Una lista de Python: se cambia en el sitio, como la de verdad. */
+export interface ListValue {
+  readonly kind: 'list'
+  items: RuntimeValue[]
+}
+
+export type RuntimeValue = Scalar | RangeValue | FunctionValue | ListValue
 
 export function isRange(value: RuntimeValue): value is RangeValue {
   return typeof value === 'object' && value !== null && value.kind === 'range'
+}
+
+export function isList(value: RuntimeValue): value is ListValue {
+  return typeof value === 'object' && value !== null && value.kind === 'list'
 }
 
 export function isFunction(value: RuntimeValue): value is FunctionValue {
@@ -40,6 +50,7 @@ export function describeType(value: RuntimeValue): string {
   if (typeof value === 'string') return 'un texto'
   if (typeof value === 'boolean') return 'un booleano'
   if (isRange(value)) return 'un range'
+  if (isList(value)) return 'una lista'
   return 'una función'
 }
 
@@ -48,6 +59,7 @@ export function truthy(value: RuntimeValue): boolean {
   if (typeof value === 'boolean') return value
   if (typeof value === 'number') return value !== 0 && !Number.isNaN(value)
   if (typeof value === 'string') return value.length > 0
+  if (isList(value)) return value.items.length > 0
   return true
 }
 
@@ -68,7 +80,27 @@ export function display(value: RuntimeValue): string {
     const extra = value.step === 1 ? '' : `, ${value.step}`
     return `range(${value.start}, ${value.stop}${extra})`
   }
+  if (isList(value)) return `[${value.items.map((item) => repr(item)).join(', ')}]`
   return `<función ${value.name}>`
+}
+
+/** Cómo se escribe un valor dentro de una lista: los textos van entre comillas. */
+export function repr(value: RuntimeValue): string {
+  if (typeof value === 'string') {
+    return `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
+  }
+  return display(value)
+}
+
+/** Igualdad de Python: las listas se comparan por dentro, no por referencia. */
+export function deepEqual(left: RuntimeValue, right: RuntimeValue): boolean {
+  if (isList(left) && isList(right)) {
+    return (
+      left.items.length === right.items.length &&
+      left.items.every((item, index) => deepEqual(item, right.items[index]!))
+    )
+  }
+  return left === right
 }
 
 /** Módulo con el signo de Python: -1 % 3 es 2, no -1. */
@@ -78,6 +110,13 @@ function pythonMod(left: number, right: number): number {
 
 function divideByZero(line: number): never {
   throw new ProgramError(line, 'No se puede dividir entre cero')
+}
+
+/** Repetir una lista, como [0] * 3. */
+function repeatList(list: ListValue, times: number): ListValue {
+  const items: RuntimeValue[] = []
+  for (let index = 0; index < Math.max(0, Math.floor(times)); index += 1) items.push(...list.items)
+  return { kind: 'list', items }
 }
 
 export function binaryOp(
@@ -92,6 +131,13 @@ export function binaryOp(
 
     const textPair = typeof left === 'string' && typeof right === 'string'
     if (op === '+' && textPair) return left + right
+
+    if (op === '+' && isList(left) && isList(right)) {
+      return { kind: 'list', items: [...left.items, ...right.items] } satisfies ListValue
+    }
+
+    if (op === '*' && isList(left) && typeof right === 'number') return repeatList(left, right)
+    if (op === '*' && typeof left === 'number' && isList(right)) return repeatList(right, left)
 
     if (op === '*') {
       if (typeof left === 'string' && typeof right === 'number') {
@@ -161,8 +207,17 @@ export function compare(
   right: RuntimeValue,
   line: number,
 ): boolean {
-  if (op === '==') return left === right
-  if (op === '!=') return left !== right
+  if (op === '==') return deepEqual(left, right)
+  if (op === '!=') return !deepEqual(left, right)
+
+  if (op === 'in') {
+    if (isList(right)) return right.items.some((item) => deepEqual(item, left))
+    if (typeof right === 'string' && typeof left === 'string') return right.includes(left)
+    throw new ProgramError(
+      line,
+      `No puedo buscar dentro de ${describeType(right)}: «in» funciona con listas y con textos`,
+    )
+  }
 
   if (typeof left === 'number' && typeof right === 'number') {
     switch (op) {

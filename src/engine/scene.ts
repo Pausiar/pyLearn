@@ -20,6 +20,11 @@ export type SceneStep =
   | { kind: 'vault'; tried: number[]; opened: boolean }
   | { kind: 'scanner'; readings: number[]; boxes: number; reached: number }
   | { kind: 'grid'; watered: number[]; cell: number }
+  | { kind: 'train'; loads: string[]; sent: boolean }
+  | { kind: 'route'; delivered: string[] }
+  | { kind: 'pizzeria'; queue: string[]; served: string | null }
+  | { kind: 'convoy'; full: string[]; convoy: string[]; formed: boolean }
+  | { kind: 'adventure'; items: string[]; weights: number[]; light: string[]; done: boolean }
 
 /** Lo que el lienzo expone al nivel: reproducir una traza y volver al estado inicial. */
 export interface SceneHandle {

@@ -157,7 +157,7 @@ describe('run: sentencias', () => {
     const result = run('for x in 3:\n    print(x)')
 
     expect(result.error?.message).toBe(
-      'Solo puedo recorrer un range o un texto, y he recibido un número',
+      'Solo puedo recorrer una lista, un range o un texto, y he recibido un número',
     )
   })
 
@@ -217,7 +217,9 @@ describe('run: funciones integradas', () => {
   it('avisa si len recibe un número', () => {
     const result = run('print(len(3))')
 
-    expect(result.error?.message).toBe('len() necesita un texto y ha recibido un número')
+    expect(result.error?.message).toBe(
+      'len() necesita un texto, un range o una lista y ha recibido un número',
+    )
   })
 
   it('avisa si range no recibe enteros', () => {

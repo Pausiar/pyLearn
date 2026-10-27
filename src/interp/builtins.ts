@@ -7,7 +7,15 @@
  */
 import { ProgramError } from './errors'
 import type { Scalar } from './types'
-import { describeType, display, isRange, rangeLength, truthy, type RuntimeValue } from './values'
+import {
+  describeType,
+  display,
+  isList,
+  isRange,
+  rangeLength,
+  truthy,
+  type RuntimeValue,
+} from './values'
 
 export interface BuiltinContext {
   print(text: string): void
@@ -82,7 +90,11 @@ const BUILTIN_LIST: [string, Builtin][] = [
       const value = args[0]!
       if (typeof value === 'string') return value.length
       if (isRange(value)) return rangeLength(value)
-      throw new ProgramError(line, `len() necesita un texto y ha recibido ${describeType(value)}`)
+      if (isList(value)) return value.items.length
+      throw new ProgramError(
+        line,
+        `len() necesita un texto, un range o una lista y ha recibido ${describeType(value)}`,
+      )
     },
   ],
   [

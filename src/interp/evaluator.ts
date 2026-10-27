@@ -9,16 +9,20 @@ import type { Expression, Statement } from './ast'
 import { BUILTINS, type BuiltinContext } from './builtins'
 import { ProgramError } from './errors'
 import { Scope } from './scope'
-import { ApiError, type Api, type Scalar } from './types'
+import { ApiError, type Api, type Value } from './types'
 import {
   binaryOp,
   compare,
+  deepEqual,
   describeType,
   isFunction,
+  isList,
   isRange,
+  repr,
   truthy,
   unaryOp,
   type FunctionValue,
+  type ListValue,
   type RuntimeValue,
 } from './values'
 
@@ -43,6 +47,11 @@ function *iterate(value: RuntimeValue, line: number): Generator<RuntimeValue> {
     return
   }
 
+  if (isList(value)) {
+    for (const item of [...value.items]) yield item
+    return
+  }
+
   if (typeof value === 'string') {
     for (const character of value) yield character
     return
@@ -50,7 +59,7 @@ function *iterate(value: RuntimeValue, line: number): Generator<RuntimeValue> {
 
   throw new ProgramError(
     line,
-    `Solo puedo recorrer un range o un texto, y he recibido ${describeType(value)}`,
+    `Solo puedo recorrer una lista, un range o un texto, y he recibido ${describeType(value)}`,
   )
 }
 
@@ -117,6 +126,20 @@ export class Interpreter {
       case 'assign': {
         const value = this.evaluate(statement.value, scope)
         for (const target of statement.targets) scope.define(target, value)
+        return NORMAL
+      }
+
+      case 'setitem': {
+        const target = this.evaluate(statement.target, scope)
+        if (!isList(target)) {
+          throw new ProgramError(
+            statement.line,
+            `Solo puedo cambiar una posición de una lista, y esto es ${describeType(target)}`,
+          )
+        }
+
+        const index = this.position(statement.index, target.items.length, scope, statement.line)
+        target.items[index] = this.evaluate(statement.value, scope)
         return NORMAL
       }
 
@@ -227,6 +250,189 @@ export class Interpreter {
 
       case 'call':
         return this.call(expression, scope)
+
+      case 'list':
+        return { kind: 'list', items: expression.items.map((item) => this.evaluate(item, scope)) }
+
+      case 'subscript':
+        return this.subscript(expression, scope)
+
+      case 'method': {
+        const target = this.evaluate(expression.target, scope)
+        if (!isList(target)) {
+          throw new ProgramError(
+            expression.line,
+            `Solo las listas tienen métodos, y esto es ${describeType(target)}`,
+          )
+        }
+
+        const args = expression.args.map((arg) => this.evaluate(arg, scope))
+        return this.listMethod(target, expression.name, args, expression.line)
+      }
+    }
+  }
+
+  /** Posición de una lista o un texto, con los números negativos desde el final. */
+  private checkedIndex(value: RuntimeValue, length: number, line: number): number {
+    if (typeof value !== 'number' || !Number.isInteger(value)) {
+      throw new ProgramError(line, 'La posición tiene que ser un número entero')
+    }
+
+    const index = value < 0 ? length + value : value
+    if (index < 0 || index >= length) {
+      throw new ProgramError(
+        line,
+        `Ahí hay ${plural(length, 'elemento', 'elementos')}: la posición ${value} no existe`,
+      )
+    }
+    return index
+  }
+
+  private position(expression: Expression, length: number, scope: Scope, line: number): number {
+    return this.checkedIndex(this.evaluate(expression, scope), length, line)
+  }
+
+  /** Un extremo de rebanada: se recorta a los límites, como en Python. */
+  private cut(expression: Expression, length: number, scope: Scope): number {
+    const value = this.evaluate(expression, scope)
+    if (typeof value !== 'number' || !Number.isInteger(value)) {
+      throw new ProgramError(expression.line, 'Las rebanadas se cortan con números enteros')
+    }
+
+    const index = value < 0 ? length + value : value
+    return Math.min(Math.max(index, 0), length)
+  }
+
+  private subscript(
+    expression: Extract<Expression, { type: 'subscript' }>,
+    scope: Scope,
+  ): RuntimeValue {
+    const target = this.evaluate(expression.target, scope)
+    const items: RuntimeValue[] | null = isList(target)
+      ? target.items
+      : typeof target === 'string'
+        ? [...target]
+        : null
+
+    if (items === null) {
+      throw new ProgramError(
+        expression.line,
+        `No puedo sacar una posición de ${describeType(target)}`,
+      )
+    }
+
+    if (!expression.slice) {
+      if (expression.index === null) {
+        throw new ProgramError(expression.line, 'Dentro de los corchetes falta la posición')
+      }
+      return items[this.position(expression.index, items.length, scope, expression.line)] ?? null
+    }
+
+    const start = expression.index === null ? 0 : this.cut(expression.index, items.length, scope)
+    const end =
+      expression.end === null ? items.length : this.cut(expression.end, items.length, scope)
+    const pieces = items.slice(start, Math.max(start, end))
+
+    if (isList(target)) return { kind: 'list', items: pieces }
+    return pieces.join('')
+  }
+
+  private listMethod(
+    list: ListValue,
+    name: string,
+    args: RuntimeValue[],
+    line: number,
+  ): RuntimeValue {
+    const items = list.items
+
+    switch (name) {
+      case 'append': {
+        if (args.length !== 1) {
+          throw new ProgramError(line, 'append() añade un solo valor: append(lo_que_sea)')
+        }
+        items.push(args[0]!)
+        return null
+      }
+
+      case 'insert': {
+        if (args.length !== 2) {
+          throw new ProgramError(
+            line,
+            'insert() necesita la posición y el valor: insert(0, "primero")',
+          )
+        }
+
+        const position = args[0]
+        if (typeof position !== 'number' || !Number.isInteger(position)) {
+          throw new ProgramError(line, 'insert() coloca el valor en una posición entera')
+        }
+
+        const index = Math.min(
+          Math.max(position < 0 ? items.length + position : position, 0),
+          items.length,
+        )
+        items.splice(index, 0, args[1]!)
+        return null
+      }
+
+      case 'remove': {
+        if (args.length !== 1) {
+          throw new ProgramError(line, 'remove() quita un valor: remove(lo_que_sea)')
+        }
+
+        const index = items.findIndex((item) => deepEqual(item, args[0]!))
+        if (index === -1) {
+          throw new ProgramError(
+            line,
+            `La lista no tiene ${repr(args[0]!)}: remove() solo quita lo que ya está dentro`,
+          )
+        }
+
+        items.splice(index, 1)
+        return null
+      }
+
+      case 'pop': {
+        if (args.length > 1) {
+          throw new ProgramError(line, 'pop() saca el último valor, o el de la posición que le digas')
+        }
+        if (items.length === 0) {
+          throw new ProgramError(line, 'pop() no puede sacar nada de una lista vacía')
+        }
+        if (args.length === 0) return items.pop() ?? null
+
+        return items.splice(this.checkedIndex(args[0], items.length, line), 1)[0] ?? null
+      }
+
+      case 'sort': {
+        if (args.length !== 0) {
+          throw new ProgramError(line, 'sort() no necesita nada más: ordena la lista tal cual')
+        }
+
+        const numbers = items.every((item) => typeof item === 'number')
+        const texts = items.every((item) => typeof item === 'string')
+        if (!numbers && !texts) {
+          throw new ProgramError(
+            line,
+            'sort() solo ordena listas de números o de textos, sin mezclar',
+          )
+        }
+
+        items.sort((left, right) => {
+          if (typeof left === 'number' && typeof right === 'number') return left - right
+          if (typeof left === 'string' && typeof right === 'string') {
+            return left < right ? -1 : left > right ? 1 : 0
+          }
+          return 0
+        })
+        return null
+      }
+
+      default:
+        throw new ProgramError(
+          line,
+          `Las listas no tienen «${name}()». Están append(), insert(), remove(), pop() y sort()`,
+        )
     }
   }
 
@@ -245,10 +451,10 @@ export class Interpreter {
 
     const apiFunction = this.api[callee]
     if (apiFunction !== undefined) {
-      const scalars = values.map((value) => this.scalarArg(value, callee, line))
+      const args = values.map((value) => this.toApi(value, callee, line))
       try {
-        const returned = apiFunction(...scalars) as Scalar | undefined
-        return returned === undefined ? null : returned
+        const returned = apiFunction(...args)
+        return returned === undefined ? null : this.fromApi(returned)
       } catch (error) {
         if (error instanceof ApiError) throw new ProgramError(line, error.message)
         throw error
@@ -258,9 +464,18 @@ export class Interpreter {
     throw new ProgramError(line, `La función ${callee}() no existe. Revisa cómo la has escrito`)
   }
 
-  private scalarArg(value: RuntimeValue, callee: string, line: number): Scalar {
-    if (value !== null && typeof value === 'object') {
+  /** Las listas viajan a los motores como arrays: allí son valores corrientes. */
+  private toApi(value: RuntimeValue, callee: string, line: number): Value {
+    if (isList(value)) return value.items.map((item) => this.toApi(item, callee, line))
+    if (isRange(value) || isFunction(value)) {
       throw new ProgramError(line, `${callee}() no acepta ${describeType(value)}`)
+    }
+    return value
+  }
+
+  private fromApi(value: Value): RuntimeValue {
+    if (Array.isArray(value)) {
+      return { kind: 'list', items: value.map((item) => this.fromApi(item)) }
     }
     return value
   }
