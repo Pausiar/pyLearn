@@ -4,8 +4,8 @@ import { LEVELS } from './catalog'
 import { PLAYABLE_LEVELS, isPlayable, playableLevel } from './registry'
 
 describe('registro de niveles', () => {
-  it('publica los niveles 1 a 5', () => {
-    expect(PLAYABLE_LEVELS.map((level) => level.id)).toEqual([1, 2, 3, 4, 5])
+  it('publica los niveles 1 a 10', () => {
+    expect(PLAYABLE_LEVELS.map((level) => level.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
   })
 
   it('coincide con el catálogo en título y concepto', () => {
@@ -19,9 +19,9 @@ describe('registro de niveles', () => {
 
   it('responde por id y distingue lo que aún no existe', () => {
     expect(playableLevel(3)?.title).toBe('La mochila')
-    expect(playableLevel(6)).toBeUndefined()
-    expect(isPlayable(5)).toBe(true)
-    expect(isPlayable(6)).toBe(false)
+    expect(playableLevel(11)).toBeUndefined()
+    expect(isPlayable(10)).toBe(true)
+    expect(isPlayable(11)).toBe(false)
   })
 
   for (const level of PLAYABLE_LEVELS) {
@@ -30,7 +30,7 @@ describe('registro de niveles', () => {
       const result = run(level.solution, session.api)
 
       expect(result.error).toBeUndefined()
-      const outcome = session.finish(result)
+      const outcome = session.finish(result, level.solution)
       expect(outcome.complete).toBe(true)
       expect(outcome.missing).toBe('')
       expect(outcome.steps.length).toBeGreaterThan(0)
@@ -41,7 +41,7 @@ describe('registro de niveles', () => {
       const result = run(level.starter, session.api)
 
       expect(result.error).toBeUndefined()
-      expect(session.finish(result).complete).toBe(false)
+      expect(session.finish(result, level.starter).complete).toBe(false)
     })
 
     it(`la solución del nivel ${level.id} cabe en su par de estrellas`, () => {

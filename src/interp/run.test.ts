@@ -190,6 +190,12 @@ describe('run: sentencias', () => {
     expect(result.error?.message).toBe('La función f() espera 1 valor y ha recibido 0')
   })
 
+  it('recoge el valor que devuelve una función de la API', () => {
+    const api: Api = { sumar: (a, b) => Number(a) + Number(b) }
+
+    expect(run('print(sumar(2, 3))', api).output).toEqual(['5'])
+  })
+
   it('pasa los argumentos de la API como valores simples', () => {
     const result = run('marcar(range(3))', recorder().api)
 

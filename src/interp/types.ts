@@ -4,8 +4,11 @@
  */
 export type Scalar = number | string | boolean | null
 
-/** Funciones que un nivel ofrece al código del alumno. */
-export type Api = Record<string, (...args: Scalar[]) => void>
+/**
+ * Funciones que un nivel ofrece al código del alumno. Pueden devolver un valor
+ * simple (el input() simulado de la tienda, la luz del semáforo) o nada.
+ */
+export type Api = Record<string, (...args: Scalar[]) => Scalar | void>
 
 /**
  * Error lanzado por la API de un minijuego. El intérprete lo convierte en un

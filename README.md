@@ -16,7 +16,7 @@ Sitio estático: sin backend, sin cuentas, sin llamadas de red en ejecución.
 | 4 a 11 | Un mundo por fase | Mundo 1 hecho; faltan 7 |
 | 12 | Pulido, accesibilidad y rendimiento | Pendiente |
 
-Jugables ahora: los cinco niveles del mundo 1. La demo visual de referencia vive en
+Jugables ahora: los diez niveles de los mundos 1 y 2. La demo visual de referencia vive en
 `reference/pylearn-demo.html`.
 
 ## Comandos

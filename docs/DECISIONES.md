@@ -49,6 +49,8 @@ inicial, solución, par de estrellas y una escena. `start()` abre la partida con
 decide el resultado y devuelve la traza que el lienzo reproduce.
 
 - Mundo 1 completo: dron (1), faro (2), mochila (3), letrero (4) y repaso final (5).
+- Mundo 2 completo: cohete (6, operadores), tienda (7, `input()` simulado con `int()` y `str()`),
+  cerradura (8, booleanos y comparaciones), semáforo (9, `if`/`else`) y guardián (10, `elif`).
 - Escenas en `src/levels/scenes/`: un lienzo por tipo, todos con `role="img"`, `aria-label` con el
   estado y pie visible. Se dibujan con rectángulos, sin imágenes ni degradados. Las escenas con
   texto (faro, mochila y letrero) se dibujan a 2× y se muestran con `image-rendering: auto`, para
@@ -57,8 +59,17 @@ decide el resultado y devuelve la traza que el lienzo reproduce.
 - El juicio es explícito y en español: cada nivel devuelve qué falta, no solo si está bien.
 - El catálogo decía «f-strings» para el nivel 4; como el intérprete aún no las tiene, el nivel
   enseña concatenación con `+` y `str()`, y el catálogo se ha corregido.
-- `registry.test.ts` recorre los cinco niveles: la solución completa, el código inicial no, y la
+- `registry.test.ts` recorre los diez niveles: la solución completa, el código inicial no, y la
   solución cabe en su par. Un nivel nuevo con una solución rota rompe los tests.
+- **Un nivel puede juzgarse en varias situaciones**: `finish(result, code)` recibe el código para
+  volver a ejecutarlo en otro escenario. El semáforo corre una vez con la luz roja (lo que ya se ve
+  en pantalla) y otra con la verde; el guardián repite el programa con los tres pases. Así no pasa
+  un `cruzar()` incondicional ni un guardián que abre siempre la misma puerta.
+- Los `minijuegos` del mundo 2 viven en `src/engine/`: `input()` devuelve la respuesta del cliente
+  en orden, `luz()` y `pase()` devuelven el estado de la escena y `candado()` solo acepta un
+  booleano de verdad, no un número disfrazado.
+- Las cinco escenas nuevas siguen el patrón de las del mundo 1: lienzo a 2× con texto nítido,
+  `role="img"`, `aria-label` con el estado y pie visible.
 
 ## Progreso
 

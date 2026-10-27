@@ -14,8 +14,12 @@ export interface LevelOutcome extends LevelVerdict {
 
 export interface LevelSession {
   api: Api
-  /** Decide el resultado y devuelve la traza que el lienzo tiene que reproducir. */
-  finish(result: RunResult): LevelOutcome
+  /**
+   * Decide el resultado y devuelve la traza que el lienzo tiene que reproducir.
+   * Recibe el código para los niveles que se juzgan en más de una situación
+   * (el semáforo en rojo y en verde, los tres pases del guardián).
+   */
+  finish(result: RunResult, code: string): LevelOutcome
 }
 
 /** Un lienzo de nivel: React 19 pasa `ref` como una prop más. */

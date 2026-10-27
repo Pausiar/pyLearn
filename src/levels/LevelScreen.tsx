@@ -62,7 +62,7 @@ function Unavailable({ levelId }: { levelId: number }) {
         <h1 ref={headingRef} tabIndex={-1}>
           {`Nivel ${levelId}: ${summary?.title ?? ''}`}
         </h1>
-        <p>Este nivel llega en una próxima entrega. Ya puedes jugar los cinco primeros.</p>
+        <p>Este nivel llega en una próxima entrega. Ya puedes jugar los diez primeros.</p>
       </header>
       <a className="btn btn--secondary" href="#/">
         Volver al mapa
@@ -102,7 +102,7 @@ function PlayableScreen({
 
     const session = level.start()
     const result = runProgram(code, session.api)
-    const outcome = session.finish(result)
+    const outcome = session.finish(result, code)
     await sceneRef.current?.play(outcome.steps)
 
     const printed = result.output.length > 0 ? `${result.output.join('\n')}\n` : ''

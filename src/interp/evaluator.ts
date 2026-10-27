@@ -247,12 +247,12 @@ export class Interpreter {
     if (apiFunction !== undefined) {
       const scalars = values.map((value) => this.scalarArg(value, callee, line))
       try {
-        apiFunction(...scalars)
+        const returned = apiFunction(...scalars) as Scalar | undefined
+        return returned === undefined ? null : returned
       } catch (error) {
         if (error instanceof ApiError) throw new ProgramError(line, error.message)
         throw error
       }
-      return null
     }
 
     throw new ProgramError(line, `La función ${callee}() no existe. Revisa cómo la has escrito`)
