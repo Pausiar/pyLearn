@@ -4,16 +4,25 @@
  */
 export type Scalar = number | string | boolean | null
 
+/** Una función del alumno que un minijuego puede llamar tantas veces como quiera. */
+export type ApiFunction = (...args: Value[]) => Value | void
+
 /**
- * Lo que un motor de nivel recibe y devuelve: los valores simples y las listas,
- * que viajan como arrays para que ningún motor conozca el AST del intérprete.
+ * Lo que un motor de nivel recibe y devuelve: los valores simples, las listas
+ * (que viajan como arrays para que ningún motor conozca el AST del intérprete)
+ * y las funciones del alumno, que un motor llama como si fueran suyas.
  */
-export type Value = Scalar | Value[]
+export type Value = Scalar | Value[] | ApiFunction
+
+/** Distingue una función del alumno del resto de valores que viajan a la API. */
+export function isApiFunction(value: Value): value is ApiFunction {
+  return typeof value === 'function'
+}
 
 /**
  * Funciones que un nivel ofrece al código del alumno. Pueden devolver un valor
- * simple (el input() simulado de la tienda, la luz del semáforo), una lista (los
- * vagones del tren) o nada.
+ * simple, una lista o nada, y pueden recibir funciones del alumno que vuelven
+ * al intérprete cuando el motor las llama.
  */
 export type Api = Record<string, (...args: Value[]) => Value | void>
 

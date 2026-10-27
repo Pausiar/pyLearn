@@ -25,6 +25,20 @@ export type SceneStep =
   | { kind: 'pizzeria'; queue: string[]; served: string | null }
   | { kind: 'convoy'; full: string[]; convoy: string[]; formed: boolean }
   | { kind: 'adventure'; items: string[]; weights: number[]; light: string[]; done: boolean }
+  | { kind: 'robot'; position: number; jumps: number; taught: boolean; run: boolean }
+  | { kind: 'oven'; baked: { sabor: string; cantidad: number }[]; done: boolean }
+  | {
+      kind: 'vending'
+      sales: { producto: string; precio: number; pago: number; cambio: number }[]
+      done: boolean
+    }
+  | { kind: 'lab'; readings: { room: string; value: number }[] }
+  | {
+      kind: 'restaurant'
+      trace: { action: string; ingrediente: string }[]
+      served: string[]
+      done: boolean
+    }
 
 /** Lo que el lienzo expone al nivel: reproducir una traza y volver al estado inicial. */
 export interface SceneHandle {

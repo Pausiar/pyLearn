@@ -72,7 +72,27 @@ describe('parse', () => {
   it('lee una función con parámetros', () => {
     const [statement] = parseSource('def sumar(a, b):\n    return a + b')
 
-    expect(statement).toMatchObject({ type: 'def', name: 'sumar', params: ['a', 'b'] })
+    expect(statement).toMatchObject({
+      type: 'def',
+      name: 'sumar',
+      params: [
+        { name: 'a', default: null },
+        { name: 'b', default: null },
+      ],
+    })
+  })
+
+  it('lee un valor por defecto en un parámetro', () => {
+    const [statement] = parseSource('def pizza(sabor, cantidad=1):\n    return sabor')
+
+    expect(statement).toMatchObject({
+      type: 'def',
+      name: 'pizza',
+      params: [
+        { name: 'sabor', default: null },
+        { name: 'cantidad', default: { type: 'constant', value: 1 } },
+      ],
+    })
   })
 
   it('lee asignaciones encadenadas', () => {

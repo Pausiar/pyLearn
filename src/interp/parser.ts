@@ -180,7 +180,7 @@ class Parser {
     this.next()
 
     this.expect('op', '(', 'Después del nombre de la función hacen falta los paréntesis')
-    const params: string[] = []
+    const params: { name: string; default: Expression | null }[] = []
     if (!this.at('op', ')')) {
       while (true) {
         const param = this.peek()
@@ -191,7 +191,18 @@ class Parser {
           )
         }
         this.next()
-        params.push(param.value)
+
+        let fallback: Expression | null = null
+        if (this.match('op', '=')) {
+          fallback = this.expression()
+        } else if (params.some((entry) => entry.default !== null)) {
+          throw new ProgramError(
+            param.line,
+            `El parámetro «${param.value}» necesita su valor por defecto: los que lo llevan van al final`,
+          )
+        }
+
+        params.push({ name: param.value, default: fallback })
         if (!this.match('op', ',')) break
         if (this.at('op', ')')) break
       }

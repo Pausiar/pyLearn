@@ -12,7 +12,13 @@ export type Statement =
     }
   | { type: 'while'; test: Expression; body: Statement[]; line: number }
   | { type: 'for'; target: string; iterable: Expression; body: Statement[]; line: number }
-  | { type: 'def'; name: string; params: string[]; body: Statement[]; line: number }
+  | {
+      type: 'def'
+      name: string
+      params: { name: string; default: Expression | null }[]
+      body: Statement[]
+      line: number
+    }
   | { type: 'return'; value: Expression | null; line: number }
   | { type: 'setitem'; target: Expression; index: Expression; value: Expression; line: number }
   | { type: 'break'; line: number }

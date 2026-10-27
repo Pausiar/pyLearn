@@ -48,11 +48,11 @@ describe('aplicación', () => {
   })
 
   it('abre la ficha de un nivel que todavía no existe', () => {
-    window.location.hash = '#/nivel/21'
+    window.location.hash = '#/nivel/26'
 
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: 'Nivel 21: El truco nuevo' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Nivel 26: La agenda' })).toBeTruthy()
     expect(screen.getByText(/llega en una próxima entrega/)).toBeTruthy()
   })
 })

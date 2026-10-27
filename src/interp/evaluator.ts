@@ -67,6 +67,40 @@ function plural(count: number, singular: string, pluralForm: string): string {
   return `${count} ${count === 1 ? singular : pluralForm}`
 }
 
+/**
+ * Nombres que el cuerpo de una función asigna. En Python son locales desde el
+ * principio: leerlos antes de darles valor es un error, aunque existan fuera.
+ */
+function localNames(statements: Statement[], names: Set<string> = new Set()): Set<string> {
+  for (const statement of statements) {
+    switch (statement.type) {
+      case 'assign':
+        statement.targets.forEach((target) => names.add(target))
+        break
+      case 'augassign':
+        names.add(statement.target)
+        break
+      case 'for':
+        names.add(statement.target)
+        localNames(statement.body, names)
+        break
+      case 'def':
+        names.add(statement.name)
+        break
+      case 'if':
+        statement.branches.forEach((branch) => localNames(branch.body, names))
+        localNames(statement.orelse, names)
+        break
+      case 'while':
+        localNames(statement.body, names)
+        break
+      default:
+        break
+    }
+  }
+  return names
+}
+
 export class Interpreter {
   private steps = 0
   private depth = 0
@@ -145,12 +179,7 @@ export class Interpreter {
 
       case 'augassign': {
         const current = scope.lookup(statement.target)
-        if (current === undefined) {
-          throw new ProgramError(
-            statement.line,
-            `La variable «${statement.target}» todavía no existe`,
-          )
-        }
+        if (current === undefined) throw this.undeclared(statement.target, scope, statement.line)
         const value = this.evaluate(statement.value, scope)
         scope.define(statement.target, binaryOp(statement.op, current, value, statement.line))
         return NORMAL
@@ -187,7 +216,11 @@ export class Interpreter {
         const fn: FunctionValue = {
           kind: 'function',
           name: statement.name,
-          params: statement.params,
+          params: statement.params.map((param) => param.name),
+          // Los valores por defecto se calculan al definir la función, como en Python.
+          defaults: statement.params.map((param) =>
+            param.default === null ? undefined : this.evaluate(param.default, scope),
+          ),
           body: statement.body,
           scope,
         }
@@ -213,9 +246,7 @@ export class Interpreter {
 
       case 'name': {
         const value = scope.lookup(expression.name)
-        if (value === undefined) {
-          throw new ProgramError(expression.line, `La variable «${expression.name}» todavía no existe`)
-        }
+        if (value === undefined) throw this.undeclared(expression.name, scope, expression.line)
         return value
       }
 
@@ -454,7 +485,7 @@ export class Interpreter {
       const args = values.map((value) => this.toApi(value, callee, line))
       try {
         const returned = apiFunction(...args)
-        return returned === undefined ? null : this.fromApi(returned)
+        return returned === undefined ? null : this.fromApi(returned, line)
       } catch (error) {
         if (error instanceof ApiError) throw new ProgramError(line, error.message)
         throw error
@@ -464,28 +495,52 @@ export class Interpreter {
     throw new ProgramError(line, `La función ${callee}() no existe. Revisa cómo la has escrito`)
   }
 
-  /** Las listas viajan a los motores como arrays: allí son valores corrientes. */
+  /**
+   * Las listas viajan a los motores como arrays y las funciones como funciones
+   * de JavaScript que vuelven a entrar en el intérprete por `callUser`.
+   */
   private toApi(value: RuntimeValue, callee: string, line: number): Value {
     if (isList(value)) return value.items.map((item) => this.toApi(item, callee, line))
-    if (isRange(value) || isFunction(value)) {
-      throw new ProgramError(line, `${callee}() no acepta ${describeType(value)}`)
+    if (isFunction(value)) {
+      const fn = value
+      return (...args: Value[]) =>
+        this.toApi(
+          this.callUser(
+            fn,
+            args.map((arg) => this.fromApi(arg, line)),
+            line,
+          ),
+          callee,
+          line,
+        )
     }
+    if (isRange(value)) throw new ProgramError(line, `${callee}() no acepta ${describeType(value)}`)
     return value
   }
 
-  private fromApi(value: Value): RuntimeValue {
+  private fromApi(value: Value, line: number): RuntimeValue {
+    if (typeof value === 'function') {
+      throw new ProgramError(line, 'Un minijuego no puede devolver una función')
+    }
     if (Array.isArray(value)) {
-      return { kind: 'list', items: value.map((item) => this.fromApi(item)) }
+      return { kind: 'list', items: value.map((item) => this.fromApi(item, line)) }
     }
     return value
   }
 
   private callUser(fn: FunctionValue, args: RuntimeValue[], line: number): RuntimeValue {
-    if (args.length !== fn.params.length) {
-      throw new ProgramError(
-        line,
-        `La función ${fn.name}() espera ${plural(fn.params.length, 'valor', 'valores')} y ha recibido ${args.length}`,
-      )
+    if (args.length > fn.params.length) throw new ProgramError(line, this.arity(fn, args.length))
+
+    const values: RuntimeValue[] = []
+    for (let index = 0; index < fn.params.length; index += 1) {
+      if (index < args.length) {
+        values.push(args[index]!)
+        continue
+      }
+
+      const fallback = fn.defaults[index]
+      if (fallback === undefined) throw new ProgramError(line, this.arity(fn, args.length))
+      values.push(fallback)
     }
 
     this.depth += 1
@@ -499,11 +554,33 @@ export class Interpreter {
 
     try {
       const scope = new Scope(fn.scope)
-      fn.params.forEach((param, index) => scope.define(param, args[index]!))
+      localNames(fn.body).forEach((name) => scope.declare(name))
+      fn.params.forEach((param, index) => scope.define(param, values[index]!))
       const flow = this.runBlock(fn.body, scope)
       return flow.kind === 'return' ? flow.value : null
     } finally {
       this.depth -= 1
     }
+  }
+
+  /** Mensaje para una llamada con demasiados valores o sin uno obligatorio. */
+  private arity(fn: FunctionValue, received: number): string {
+    const required = fn.defaults.filter((value) => value === undefined).length
+    const expected =
+      required === fn.params.length
+        ? plural(fn.params.length, 'valor', 'valores')
+        : `entre ${required} y ${fn.params.length} valores`
+    return `La función ${fn.name}() espera ${expected} y ha recibido ${received}`
+  }
+
+  /** Un nombre que se lee antes de tener valor. */
+  private undeclared(name: string, scope: Scope, line: number): ProgramError {
+    if (scope.isPending(name)) {
+      return new ProgramError(
+        line,
+        `«${name}» es local en esta función y todavía no tiene valor: dale uno antes de leerla`,
+      )
+    }
+    return new ProgramError(line, `La variable «${name}» todavía no existe`)
   }
 }

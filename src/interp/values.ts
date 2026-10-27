@@ -19,6 +19,8 @@ export interface FunctionValue {
   readonly kind: 'function'
   name: string
   params: string[]
+  /** Valor por defecto de cada parámetro; `undefined` cuando es obligatorio. */
+  defaults: (RuntimeValue | undefined)[]
   body: Statement[]
   scope: Scope
 }
