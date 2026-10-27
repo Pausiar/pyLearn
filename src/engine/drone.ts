@@ -1,4 +1,5 @@
 import { ApiError, type Api } from '../interp/types'
+import type { SceneStep } from './scene'
 
 /** Casillas del campo, contando el hangar como 0. */
 export const FIELD_CELLS = 6
@@ -35,6 +36,24 @@ export function createApi(field: DroneField, actions: DroneAction[]): Api {
       actions.push({ type: 'water' })
     },
   }
+}
+
+/** Traza visual: el estado del campo después de cada acción, empezando por el inicial. */
+export function droneSteps(actions: readonly DroneAction[]): SceneStep[] {
+  const steps: SceneStep[] = [{ kind: 'drone', x: 0, watered: [] }]
+  let x = 0
+  const watered: number[] = []
+
+  for (const action of actions) {
+    if (action.type === 'move') {
+      x += 1
+    } else if (!watered.includes(x)) {
+      watered.push(x)
+    }
+    steps.push({ kind: 'drone', x, watered: [...watered] })
+  }
+
+  return steps
 }
 
 export function isComplete(field: DroneField): boolean {

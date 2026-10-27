@@ -3,18 +3,12 @@ import { DECOY_TEXT } from '../app/clipboard'
 import { applyRun, type Progress } from '../app/progress'
 import { Console, type ConsoleTone } from '../editor/Console'
 import { CodeEditor } from '../editor/CodeEditor'
-import {
-  CROPS,
-  createApi,
-  createField,
-  isComplete,
-  wateredCount,
-  type DroneAction,
-} from '../engine/drone'
+import type { SceneHandle } from '../engine/scene'
 import { run as runProgram } from '../interp/run'
-import { DroneField, type DroneFieldHandle } from './DroneField'
-import { LEVEL_01, starsForLines } from './level01'
-import { levelById } from './catalog'
+import { levelById, worldById } from './catalog'
+import { playableLevel } from './registry'
+import { starsForLines } from './stars'
+import type { PlayableLevel } from './types'
 
 interface LevelScreenProps {
   levelId: number
@@ -39,33 +33,66 @@ function handleStatementCopy(event: ClipboardEvent<HTMLElement>) {
   event.clipboardData.setData('text/plain', DECOY_TEXT)
 }
 
-export function LevelScreen({ levelId, progress, onChange }: LevelScreenProps) {
+export function LevelScreen(props: LevelScreenProps) {
+  const level = playableLevel(props.levelId)
+
+  if (!level) return <Unavailable levelId={props.levelId} />
+
+  return (
+    <PlayableScreen
+      key={level.id}
+      level={level}
+      progress={props.progress}
+      onChange={props.onChange}
+    />
+  )
+}
+
+function Unavailable({ levelId }: { levelId: number }) {
   const headingRef = useRef<HTMLHeadingElement>(null)
-  const sceneRef = useRef<DroneFieldHandle>(null)
-  const [code, setCode] = useState(LEVEL_01.starter)
-  const [running, setRunning] = useState(false)
-  const [message, setMessage] = useState<Message>({ tone: 'idle', text: '' })
+  const summary = levelById(levelId)
 
   useEffect(() => {
     headingRef.current?.focus({ preventScroll: true })
   }, [levelId])
 
-  if (levelId !== LEVEL_01.id) {
-    const other = levelById(levelId)
-    return (
-      <main className="shell">
-        <header className="page-head">
-          <h1 ref={headingRef} tabIndex={-1}>
-            {`Nivel ${levelId}: ${other?.title ?? ''}`}
-          </h1>
-          <p>Este nivel llega en la siguiente entrega. Mientras tanto, el nivel 1 ya se juega.</p>
-        </header>
-        <a className="btn btn--secondary" href="#/">
-          Volver al mapa
-        </a>
-      </main>
-    )
-  }
+  return (
+    <main className="shell">
+      <header className="page-head">
+        <h1 ref={headingRef} tabIndex={-1}>
+          {`Nivel ${levelId}: ${summary?.title ?? ''}`}
+        </h1>
+        <p>Este nivel llega en una próxima entrega. Ya puedes jugar los cinco primeros.</p>
+      </header>
+      <a className="btn btn--secondary" href="#/">
+        Volver al mapa
+      </a>
+    </main>
+  )
+}
+
+function PlayableScreen({
+  level,
+  progress,
+  onChange,
+}: {
+  level: PlayableLevel
+  progress: Progress
+  onChange(progress: Progress): void
+}) {
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  const sceneRef = useRef<SceneHandle>(null)
+  const [code, setCode] = useState(level.starter)
+  const [running, setRunning] = useState(false)
+  const [message, setMessage] = useState<Message>({ tone: 'idle', text: '' })
+
+  const summary = levelById(level.id)
+  const world = summary ? worldById(summary.world) : undefined
+  const Scene = level.Scene
+
+  useEffect(() => {
+    headingRef.current?.focus({ preventScroll: true })
+  }, [level.id])
 
   async function run() {
     if (running) return
@@ -73,15 +100,15 @@ export function LevelScreen({ levelId, progress, onChange }: LevelScreenProps) {
     setMessage({ tone: 'idle', text: 'Ejecutando tu programa.' })
     sceneRef.current?.reset()
 
-    const field = createField()
-    const actions: DroneAction[] = []
-    const result = runProgram(code, createApi(field, actions))
-    await sceneRef.current?.play(actions)
+    const session = level.start()
+    const result = runProgram(code, session.api)
+    const outcome = session.finish(result)
+    await sceneRef.current?.play(outcome.steps)
 
     const printed = result.output.length > 0 ? `${result.output.join('\n')}\n` : ''
 
     if (result.error) {
-      const applied = applyRun(progress, LEVEL_01.id, { failed: true })
+      const applied = applyRun(progress, level.id, { failed: true })
       onChange(applied.progress)
       setMessage({
         tone: 'error',
@@ -91,25 +118,24 @@ export function LevelScreen({ levelId, progress, onChange }: LevelScreenProps) {
       return
     }
 
-    if (isComplete(field)) {
-      const stars = starsForLines(result.lines)
-      onChange(applyRun(progress, LEVEL_01.id, { stars }).progress)
-      const tip = stars < 3 ? '\nPrueba con 8 líneas o menos para las 3 estrellas.' : ''
+    if (outcome.complete) {
+      const stars = starsForLines(result.lines, level.par)
+      onChange(applyRun(progress, level.id, { stars }).progress)
+      const tip =
+        stars < 3 ? `\nPrueba con ${level.par} líneas o menos para las 3 estrellas.` : ''
       setMessage({
         tone: 'ok',
-        text: `${printed}Cultivos regados. ${stars} de 3 estrellas (${result.lines} líneas).${tip}`,
+        text: `${printed}${level.success} ${stars} de 3 estrellas (${result.lines} líneas).${tip}`,
       })
       setRunning(false)
       return
     }
 
-    const applied = applyRun(progress, LEVEL_01.id, { failed: true })
+    const applied = applyRun(progress, level.id, { failed: true })
     onChange(applied.progress)
-    const missing = CROPS.length - wateredCount(field)
-    const what = missing === 1 ? 'Falta 1 cultivo por regar.' : `Faltan ${missing} cultivos por regar.`
     setMessage({
       tone: 'error',
-      text: `${printed}${what} Avanza hasta cada planta y riega.${applied.recovered ? RECOVERY : ''}`,
+      text: `${printed}${outcome.missing}${applied.recovered ? RECOVERY : ''}`,
     })
     setRunning(false)
   }
@@ -124,20 +150,20 @@ export function LevelScreen({ levelId, progress, onChange }: LevelScreenProps) {
     <main className="shell level">
       <header className="level__head" onCopy={handleStatementCopy}>
         <h1 ref={headingRef} tabIndex={-1}>
-          Nivel 1: Primer vuelo
+          {`Nivel ${level.id}: ${level.title}`}
         </h1>
-        <p className="level__meta">Mundo 1: Despegue. Instrucciones en secuencia.</p>
-        <p className="level__story">{LEVEL_01.story}</p>
+        <p className="level__meta">{`Mundo ${world?.id ?? 1}: ${world?.title ?? 'Despegue'}. ${level.concept}.`}</p>
+        <p className="level__story">{level.story}</p>
         <details className="hint">
           <summary>Pista</summary>
-          <p>{LEVEL_01.hint}</p>
+          <p>{level.hint}</p>
         </details>
       </header>
 
       <div className="work">
-        <section className="panel" aria-labelledby="field-title">
-          <h2 id="field-title">El campo</h2>
-          <DroneField ref={sceneRef} />
+        <section className="panel" aria-labelledby="scene-title">
+          <h2 id="scene-title">{level.sceneTitle}</h2>
+          <Scene ref={sceneRef} />
         </section>
 
         <section className="panel" aria-labelledby="code-title">

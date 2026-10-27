@@ -2,11 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { currentLevel, type Progress } from '../app/progress'
 import { navigate } from '../app/router'
 import { levelById, worldById, type LevelSummary } from '../levels/catalog'
+import { isPlayable } from '../levels/registry'
 import { HexMap } from './HexMap'
 import { LevelPreviewDialog } from './LevelPreviewDialog'
-
-/** Fase 0: solo el nivel 1 está construido. El resto abre su ficha informativa. */
-const PLAYABLE = new Set([1])
 
 export function MapScreen({ progress }: { progress: Progress }) {
   const [preview, setPreview] = useState<LevelSummary | null>(null)
@@ -20,7 +18,7 @@ export function MapScreen({ progress }: { progress: Progress }) {
   }, [])
 
   function handlePick(picked: LevelSummary) {
-    if (PLAYABLE.has(picked.id)) {
+    if (isPlayable(picked.id)) {
       navigate({ name: 'level', id: picked.id })
       return
     }

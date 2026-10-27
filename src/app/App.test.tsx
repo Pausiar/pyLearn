@@ -53,6 +53,6 @@ describe('aplicación', () => {
     render(<App />)
 
     expect(screen.getByRole('heading', { name: 'Nivel 12: El minero' })).toBeTruthy()
-    expect(screen.getByText(/llega en la siguiente entrega/)).toBeTruthy()
+    expect(screen.getByText(/llega en una próxima entrega/)).toBeTruthy()
   })
 })

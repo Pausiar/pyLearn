@@ -11,12 +11,13 @@ Sitio estático: sin backend, sin cuentas, sin llamadas de red en ejecución.
 | --- | --- | --- |
 | 0 | Base, despliegue y nivel 1 jugable | Hecha |
 | 1 | Intérprete real (lexer, parser, AST, traza) | Hecha |
-| 2 | Mapa completo e interfaz de progreso | Pendiente |
-| 3 | Motor de minijuegos y test de soluciones | Pendiente |
-| 4 a 11 | Un mundo por fase | Pendiente |
+| 2 | Mapa completo e interfaz de progreso | Hecha |
+| 3 | Motor de minijuegos y test de soluciones | Hecha |
+| 4 a 11 | Un mundo por fase | Mundo 1 hecho; faltan 7 |
 | 12 | Pulido, accesibilidad y rendimiento | Pendiente |
 
-La demo visual de referencia vive en `reference/pylearn-demo.html`.
+Jugables ahora: los cinco niveles del mundo 1. La demo visual de referencia vive en
+`reference/pylearn-demo.html`.
 
 ## Comandos
 
@@ -38,7 +39,7 @@ src/
   editor/   editor de código y consola
   interp/   intérprete de Python: lexer, parser, evaluador y funciones integradas
   engine/   lógica headless de los minijuegos
-  levels/   catálogo de niveles y el nivel 1
+  levels/   catálogo, registro de niveles jugables y escenas
   pixel/    paleta, sprites y dibujo del lienzo
   styles/   tokens y estilos
 docs/       decisiones de diseño y auditorías

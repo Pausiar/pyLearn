@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { run } from '../interp/run'
-import { LEVEL_01, starsForLines } from '../levels/level01'
+import { LEVEL_01 } from '../levels/level01'
+import { starsForLines } from '../levels/stars'
 import { createApi, createField, describeField, isComplete, type DroneAction } from './drone'
 
 function play(source: string) {

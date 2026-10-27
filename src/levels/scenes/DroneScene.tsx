@@ -1,22 +1,13 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { describeField, type DroneAction } from '../engine/drone'
-import {
-  LOGICAL_HEIGHT,
-  LOGICAL_WIDTH,
-  drawField,
-  type SceneView,
-} from '../pixel/render'
+import { useCallback, useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react'
+import { describeField } from '../../engine/drone'
+import type { SceneHandle, SceneStep } from '../../engine/scene'
+import { LOGICAL_HEIGHT, LOGICAL_WIDTH, drawField, type SceneView } from '../../pixel/render'
 
-export interface DroneFieldHandle {
-  play(actions: DroneAction[]): Promise<void>
-  reset(): void
-}
+const STEP_MS = 420
+const DROP_MS = 360
 
-const STEP_MS = 450
-const DROP_MS = 380
-
-/** Lienzo del nivel 1. La lógica vive en engine/drone; aquí solo se reproduce la traza. */
-export const DroneField = forwardRef<DroneFieldHandle>(function DroneField(_props, ref) {
+/** Lienzo del dron. La lógica vive en engine/drone; aquí solo se reproduce la traza. */
+export function DroneScene({ ref }: { ref?: Ref<SceneHandle> }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const viewRef = useRef<SceneView>({
     x: 0,
@@ -56,28 +47,31 @@ export const DroneField = forwardRef<DroneFieldHandle>(function DroneField(_prop
     }
   }, [])
 
-  const play = useCallback(async (actions: DroneAction[]) => {
+  const play = useCallback(async (steps: SceneStep[]) => {
     const wait = (ms: number) =>
       new Promise<void>((resolve) => {
         window.setTimeout(resolve, reducedRef.current ? 0 : ms)
       })
 
-    for (const action of actions) {
+    for (const step of steps) {
+      if (step.kind !== 'drone') continue
       if (!aliveRef.current) return
+
       const view = viewRef.current
 
-      if (action.type === 'move') {
-        view.targetX += 1
+      if (step.x !== view.targetX) {
+        view.targetX = step.x
         await wait(STEP_MS)
-        continue
       }
 
-      view.dropStart = performance.now()
-      await wait(DROP_MS)
-      view.watered.add(view.targetX)
-      view.dropStart = null
+      if (step.watered.length > view.watered.size) {
+        view.dropStart = performance.now()
+        await wait(DROP_MS)
+        view.watered = new Set(step.watered)
+        view.dropStart = null
+      }
+
       setLabel(describeField({ x: view.targetX, watered: view.watered }))
-      await wait(70)
     }
   }, [])
 
@@ -107,4 +101,4 @@ export const DroneField = forwardRef<DroneFieldHandle>(function DroneField(_prop
       </p>
     </div>
   )
-})
+}

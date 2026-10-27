@@ -43,6 +43,15 @@ Todos los pares se calcularon con la fórmula WCAG. Umbrales de `hig/accessibili
 - **Texto**: cuerpo a 16 px, mínimo 14 px (10.5 pt), por encima del mínimo de escritorio de Apple
   (10 pt) y por debajo de los 11 pt de iOS, que es un objetivo de app nativa.
 
+## Niveles 2 a 5
+
+- Cada lienzo conserva `role="img"` y un `aria-label` con el estado (mensajes enviados, contenido
+  de la mochila, texto del letrero, posición del dron), más el pie visible.
+- El juicio no depende de distinguir colores: la consola dice qué falta con palabras.
+- Los cuatro lienzos respetan `prefers-reduced-motion`: con movimiento reducido, los pasos aparecen
+  sin espera.
+- Los controles siguen siendo los mismos de la Fase 0; la escena es solo lectura.
+
 ## Lente 2: convenciones
 
 - Barra superior con marca, cifras del jugador y un solo acceso a ajustes. Ajustes en una hoja, no

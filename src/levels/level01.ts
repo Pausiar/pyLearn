@@ -1,6 +1,19 @@
+import {
+  CROPS,
+  createApi,
+  createField,
+  droneSteps,
+  isComplete,
+  wateredCount,
+  type DroneAction,
+} from '../engine/drone'
+import { DroneScene } from './scenes/DroneScene'
+import type { PlayableLevel } from './types'
+
 export const LEVEL_01 = {
   id: 1,
   title: 'Primer vuelo',
+  concept: 'Instrucciones en secuencia',
   story:
     'El dron está en el hangar y cuatro cultivos se están secando. Escribe las instrucciones para que avance hasta cada uno y lo riegue. Python lee tus líneas en orden, de arriba abajo.',
   hint:
@@ -24,9 +37,32 @@ export const LEVEL_01 = {
   ].join('\n'),
 } as const
 
-/** Tres estrellas con 8 líneas o menos; dos hasta 10; una por terminarlo. */
-export function starsForLines(lines: number): number {
-  if (lines <= 8) return 3
-  if (lines <= 10) return 2
-  return 1
+export const PLAYABLE_01: PlayableLevel = {
+  ...LEVEL_01,
+  par: 8,
+  sceneTitle: 'El campo',
+  success: 'Cultivos regados.',
+  Scene: DroneScene,
+  start() {
+    const field = createField()
+    const actions: DroneAction[] = []
+
+    return {
+      api: createApi(field, actions),
+      finish() {
+        const complete = isComplete(field)
+        const missing = CROPS.length - wateredCount(field)
+        const what =
+          missing === 1
+            ? 'Falta 1 cultivo por regar.'
+            : `Faltan ${missing} cultivos por regar.`
+
+        return {
+          complete,
+          missing: complete ? '' : `${what} Avanza hasta cada planta y riega.`,
+          steps: droneSteps(actions),
+        }
+      },
+    }
+  },
 }

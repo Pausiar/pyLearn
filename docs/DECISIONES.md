@@ -42,6 +42,22 @@ la API se convierten en errores de su línea y lo impreso antes de fallar se con
 El prototipo de la Fase 0 (`prototype.ts`) se ha eliminado: su comportamiento, incluida la falta de
 precedencia, queda cubierto por las pruebas del intérprete nuevo.
 
+## Niveles
+
+Un nivel jugable es un objeto `PlayableLevel` (`src/levels/types.ts`): metadatos, enunciado, código
+inicial, solución, par de estrellas y una escena. `start()` abre la partida con su API y `finish()`
+decide el resultado y devuelve la traza que el lienzo reproduce.
+
+- Mundo 1 completo: dron (1), faro (2), mochila (3), letrero (4) y repaso final (5).
+- Escenas en `src/levels/scenes/`: un lienzo por tipo, todos con `role="img"`, `aria-label` con el
+  estado y pie visible. Se dibujan con rectángulos, sin imágenes ni degradados.
+- Estrellas por nivel: 3 hasta su `par` de líneas, 2 hasta dos más, 1 por terminarlo.
+- El juicio es explícito y en español: cada nivel devuelve qué falta, no solo si está bien.
+- El catálogo decía «f-strings» para el nivel 4; como el intérprete aún no las tiene, el nivel
+  enseña concatenación con `+` y `str()`, y el catálogo se ha corregido.
+- `registry.test.ts` recorre los cinco niveles: la solución completa, el código inicial no, y la
+  solución cabe en su par. Un nivel nuevo con una solución rota rompe los tests.
+
 ## Progreso
 
 - Clave `pylearn:v1`, esquema `{ version: 1, stars, lives }`, validado al leer: estrellas acotadas a

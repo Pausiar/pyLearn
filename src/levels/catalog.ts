@@ -32,7 +32,7 @@ export const LEVELS: readonly LevelSummary[] = [
   level(1, 'Primer vuelo', 'Instrucciones en secuencia', 'Dron granjero: riega 4 cultivos'),
   level(2, 'Mensaje en botella', 'print() y cadenas', 'Faro pixel que emite señales de texto'),
   level(3, 'La mochila', 'Variables y asignación', 'Inventario de un explorador'),
-  level(4, 'Letreros de neón', 'Concatenación y f-strings', 'Carteles de una ciudad nocturna'),
+  level(4, 'Letreros de neón', 'Concatenación y str()', 'Carteles de una ciudad nocturna'),
   level(5, 'Jefe: el gran día de la granja', 'Repaso del mundo 1', 'Una jornada completa del dron'),
   level(6, 'Combustible', 'Números y operadores', 'Calcula el combustible de un cohete'),
   level(7, 'La tienda', 'input() simulado, int() y str()', 'Cajero de una tienda pixel'),
