@@ -25,8 +25,10 @@ progreso o juego: el hexágono actual, el verde de lo completado, y el pixel art
 Todo lo demás compite en silencio con el código.
 
 - **Job**: entrar al siguiente nivel y ver el programa funcionar.
-- **Firma**: el camino de hexágonos, con el nivel actual latiendo y los jefes más grandes.
-  Dentro del nivel, la firma es el campo de píxeles que responde línea a línea a lo que escribes.
+- **Firma**: el camino de hexágonos con volumen —canto, cara y placa—, el tramo curvo que se
+  enciende en verde al avanzar, la pastilla «Empieza» sobre el nivel actual y la tarjeta azul del
+  mundo. Dentro del nivel, la firma es el campo de píxeles que responde línea a línea a lo que
+  escribes.
 - **Material del tema**: geometría y pixel art, nunca fotografía.
 
 ## Hallmark Picks
@@ -54,6 +56,10 @@ Todo lo demás compite en silencio con el código.
 | `--color-done` | `#248a3d` | `#248a3d` |
 | `--color-done-ink` (estrellas) | `#1a7f37` | `#30d158` |
 | `--color-locked` | `#d2d2d7` | `#3a3a3c` |
+| `--color-done-deep` (canto) | `#1b6b2e` | `#18622a` |
+| `--color-accent-deep` (canto) | `#0058b8` | `#004f9e` |
+| `--color-locked-deep` (canto y borde del camino) | `#b4b4bb` | `#2a2a2c` |
+| `--color-node-shine` (placa del nodo) | `rgba(255,255,255,.12)` | `rgba(255,255,255,.08)` |
 | `--color-danger` | `#d70015` | `#ff6961` |
 
 Derivados respecto a la demo, por contraste: `--color-done` no llega a 4.5:1 como texto sobre
@@ -77,8 +83,11 @@ fluidas: 13, 14, 16, 19, 23, 28, 34 px. Peso máximo 600. Sin cursivas.
 
 ## Lo que este sistema no hace
 
-- Sin degradados, sin halos, sin sombras difusas: la elevación es el borde y el cambio de superficie.
-- Sin etiquetas en mayúsculas ni con tracking, sin antetítulos, sin puntos medios.
+- Sin degradados ni halos. La elevación del mapa son tres capas planas (canto, cara y placa), no una
+  sombra difusa; el resto de la interfaz sigue siendo borde y cambio de superficie.
+- Sin etiquetas en mayúsculas ni con tracking: la pastilla del nivel actual dice «Empieza» en la
+  misma tipografía del sistema. La tarjeta del mundo lleva una línea pequeña sobre el título, como
+  el capítulo de la referencia.
 - Sin animación decorativa: solo el pulso del nivel actual y el movimiento del dron, ambos con
   alternativa con `prefers-reduced-motion`.
 - Sin iconos que no sean SVG propios, y todo control con etiqueta accesible.

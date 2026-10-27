@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Progress } from '../app/progress'
+import { currentLevel, type Progress } from '../app/progress'
 import { navigate } from '../app/router'
-import type { LevelSummary } from '../levels/catalog'
+import { levelById, worldById, type LevelSummary } from '../levels/catalog'
 import { HexMap } from './HexMap'
 import { LevelPreviewDialog } from './LevelPreviewDialog'
 
@@ -11,27 +11,32 @@ const PLAYABLE = new Set([1])
 export function MapScreen({ progress }: { progress: Progress }) {
   const [preview, setPreview] = useState<LevelSummary | null>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
+  const current = currentLevel(progress)
+  const level = levelById(current)
+  const world = level ? worldById(level.world) : undefined
 
   useEffect(() => {
     headingRef.current?.focus({ preventScroll: true })
   }, [])
 
-  function handlePick(level: LevelSummary) {
-    if (PLAYABLE.has(level.id)) {
-      navigate({ name: 'level', id: level.id })
+  function handlePick(picked: LevelSummary) {
+    if (PLAYABLE.has(picked.id)) {
+      navigate({ name: 'level', id: picked.id })
       return
     }
-    setPreview(level)
+    setPreview(picked)
   }
 
   return (
-    <main className="shell">
-      <header className="page-head">
-        <h1 ref={headingRef} tabIndex={-1}>
-          Tu camino
-        </h1>
-        <p>Cuarenta niveles, ocho mundos. Empieza por el primero.</p>
-      </header>
+    <main className="shell map">
+      <h1 className="visually-hidden" ref={headingRef} tabIndex={-1}>
+        Tu camino
+      </h1>
+
+      <div className="map__banner">
+        <p className="map__eyebrow">{`Mundo ${world?.id ?? 1}: ${world?.title ?? 'Despegue'}`}</p>
+        <p className="map__title">{`Nivel ${level?.id ?? current}: ${level?.title ?? ''}`}</p>
+      </div>
 
       <HexMap progress={progress} onPick={handlePick} />
       <LevelPreviewDialog level={preview} onClose={() => setPreview(null)} />

@@ -112,20 +112,42 @@
   margin-top: var(--space-5);
 }
 
+.map {
+  padding-top: var(--space-5);
+}
+
+.map__banner {
+  position: sticky;
+  top: calc(var(--bar) + env(safe-area-inset-top, 0px) + var(--space-3));
+  z-index: 5;
+  display: grid;
+  gap: var(--space-1);
+  max-width: var(--map-max);
+  margin: 0 auto var(--space-7);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-fill);
+  color: var(--color-accent-ink);
+}
+
+.map__eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.map__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+}
+
 .hexmap {
   display: block;
   width: 100%;
   max-width: var(--map-max);
   height: auto;
   margin-inline: auto;
-}
-
-.hexmap__path {
-  fill: none;
-  stroke: var(--color-locked);
-  stroke-width: 4;
-  stroke-dasharray: 2 10;
-  stroke-linecap: round;
+  overflow: visible;
 }
 
 .hexmap__world {
@@ -138,8 +160,38 @@
   stroke-width: 6px;
 }
 
+.hexmap__casing,
+.hexmap__lane {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.hexmap__casing {
+  stroke: var(--color-locked-deep);
+  stroke-width: 22;
+}
+
+.hexmap__lane {
+  stroke: var(--color-locked);
+  stroke-width: 14;
+}
+
+.hexmap__segment--done .hexmap__casing {
+  stroke: var(--color-done-deep);
+}
+
+.hexmap__segment--done .hexmap__lane {
+  stroke: var(--color-done);
+}
+
 .node {
   cursor: pointer;
+  scroll-margin-block: 7rem;
+}
+
+.node__side {
+  fill: var(--color-locked-deep);
+  transition: fill var(--dur-micro) var(--ease);
 }
 
 .node__shape {
@@ -147,8 +199,20 @@
   transition: fill var(--dur-micro) var(--ease);
 }
 
+.node__plate {
+  fill: var(--color-node-shine);
+}
+
+.node--done .node__side {
+  fill: var(--color-done-deep);
+}
+
 .node--done .node__shape {
   fill: var(--color-done);
+}
+
+.node--current .node__side {
+  fill: var(--color-accent-deep);
 }
 
 .node--current .node__shape {
@@ -157,44 +221,48 @@
 
 .node__ring {
   fill: none;
-  stroke: var(--color-locked);
+  stroke: var(--color-locked-deep);
   stroke-width: 3;
 }
 
 .node--done .node__ring {
-  stroke: var(--color-done);
+  stroke: var(--color-done-deep);
 }
 
 .node--current .node__ring {
-  stroke: var(--color-accent);
+  stroke: var(--color-accent-deep);
+}
+
+.node__check {
+  fill: none;
+  stroke: var(--color-accent-ink);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.node__play {
+  fill: var(--color-accent-ink);
 }
 
 .node__number {
-  fill: var(--color-muted);
+  fill: var(--color-ink);
   font-family: var(--font-ui);
-  font-size: var(--text-lg);
+  font-size: 1.25rem;
   font-weight: 700;
   pointer-events: none;
 }
 
-.node--done .node__number,
-.node--current .node__number {
-  fill: var(--color-accent-ink);
+.node__badge rect,
+.node__badge path {
+  fill: var(--color-ink);
 }
 
-.node__stars {
-  fill: var(--color-done-ink);
+.node__badge text {
+  fill: var(--color-bg);
   font-family: var(--font-ui);
-  font-size: var(--text-base);
-  pointer-events: none;
-}
-
-.node__here {
-  fill: var(--color-accent-text);
-  font-family: var(--font-ui);
-  font-size: var(--text-base);
+  font-size: var(--text-xs);
   font-weight: 600;
-  pointer-events: none;
 }
 
 .node:focus-visible {
@@ -216,7 +284,7 @@
 
   @keyframes pulse {
     50% {
-      transform: scale(1.09);
+      transform: scale(1.05);
     }
   }
 }

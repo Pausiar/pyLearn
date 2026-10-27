@@ -60,6 +60,10 @@
   --color-done: #248a3d;
   --color-done-ink: #1a7f37;
   --color-locked: #d2d2d7;
+  --color-done-deep: #1b6b2e;
+  --color-accent-deep: #0058b8;
+  --color-locked-deep: #b4b4bb;
+  --color-node-shine: rgba(255, 255, 255, 0.12);
   --color-danger: #d70015;
   --color-border: rgba(0, 0, 0, 0.09);
   --color-border-strong: #8a8a8e;
@@ -90,6 +94,10 @@
       --color-done: #248a3d;
     --color-done-ink: #30d158;
     --color-locked: #3a3a3c;
+    --color-done-deep: #18622a;
+    --color-accent-deep: #004f9e;
+    --color-locked-deep: #2a2a2c;
+    --color-node-shine: rgba(255, 255, 255, 0.08);
     --color-danger: #ff6961;
     --color-border: rgba(255, 255, 255, 0.13);
     --color-border-strong: #6e6e73;
@@ -116,6 +124,10 @@
   --color-done: #248a3d;
   --color-done-ink: #30d158;
   --color-locked: #3a3a3c;
+  --color-done-deep: #18622a;
+  --color-accent-deep: #004f9e;
+  --color-locked-deep: #2a2a2c;
+  --color-node-shine: rgba(255, 255, 255, 0.08);
   --color-danger: #ff6961;
   --color-border: rgba(255, 255, 255, 0.13);
   --color-border-strong: #6e6e73;

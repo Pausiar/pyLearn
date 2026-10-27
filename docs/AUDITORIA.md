@@ -75,6 +75,34 @@ pantalla, h2 por panel.
 | 5 | Redacción | Un error usaba «hemos recargado» con sujeto ambiguo | Baja | Corregido según `hig/writing.md` |
 | 6 | Accesibilidad | Las etiquetas del SVG escalan con el mapa (16 unidades: 15 px a 375, 13 px a 320) | Baja | Abierto, aceptado: el `aria-label` lleva la información completa |
 
+## Rediseño del mapa (camino con volumen)
+
+Revisión al adoptar el camino de la referencia: nodos con canto, camino curvo y tarjeta de mundo.
+Pares nuevos, calculados sobre los tokens:
+
+| Par | Claro | Oscuro | Umbral |
+| --- | --- | --- | --- |
+| Texto de la tarjeta sobre el azul | 4.70:1 | 4.70:1 | 4.5 |
+| Texto de «Empieza» sobre su pastilla | 15.46:1 | 19.29:1 | 4.5 |
+| Número de nivel sobre el hexágono bloqueado | 11.74:1 | 8.12:1 | 4.5 |
+| Check sobre la placa verde | 3.61:1 | 3.86:1 | 3:1 (gráfico) |
+| Triángulo de juego sobre el azul | 3.89:1 | 4.16:1 | 3:1 (gráfico) |
+| Tramo completado sobre el fondo | 4.04:1 | — | 3:1 (gráfico) |
+| Rótulo de mundo sobre el fondo | 4.66:1 | 8.16:1 | 4.5 |
+
+- El número de nivel pasa de `--color-muted` a `--color-ink`: sobre el gris bloqueado, el gris
+  secundario no llegaba a 4.5:1.
+- El nodo actual ya no lleva el texto «Aquí»: lo dicen la pastilla EMPIEZA, la tarjeta del mundo y
+  `aria-current="step"`.
+- Las estrellas por nivel salen del mapa: se solapaban con el nodo siguiente y la referencia no las
+  usa. Siguen en el nombre accesible de cada nodo y en el contador de la barra.
+- El camino bloqueado es decorativo y de bajo contraste (1.38:1 en claro): la información está en
+  los nodos, cada uno con etiqueta y número. El tramo completado sí llega a 3:1.
+- Tamaño táctil: hexágono de 54 px de ancho (27 de radio) más el canto; los jefes, 72. Por encima
+  de los 44 pt de Apple.
+- La pastilla del nivel actual dice «Empieza» en sentencia y sin tracking: Hallmark lo exige para
+  etiquetas y la insignia no necesita mayúsculas.
+
 ## Límites de esta auditoría
 
 - Sin navegador en la máquina: no hay capturas, ni comprobación de la capa de render de sloplint, ni

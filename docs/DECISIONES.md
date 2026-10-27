@@ -76,8 +76,10 @@ precedencia, queda cubierto por las pruebas del intérprete nuevo.
 - **Aviso al pegar**: pegar tres o más líneas con contenido, o 120 caracteres en una sola línea,
   muestra un aviso en la consola; el pegado se hace igual. La heurística vive en
   `app/clipboard.ts` y tiene pruebas.
-- **Mapa**: la geometría es la de la demo (radio 26, jefes 36 con anillo, zigzag de 95 unidades,
-  paso 78 y 112 por mundo).
+- **Mapa**: zigzag de 95 unidades con paso 78 dentro de un mundo y 136 al empezar otro (para el
+  rótulo y la pastilla EMPIEZA). Nodos de 27 unidades de radio, jefes de 36 con anillo y un canto de
+  6 que da el volumen. Los tramos se curvan con Catmull-Rom (`curveSegments`) y se colorean por el
+  nodo de salida, así que el camino se enciende en verde al avanzar.
 
 ## Alcance de la Fase 0
 
