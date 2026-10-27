@@ -30,7 +30,7 @@ function level(id: number, title: string, concept: string, game: string): LevelS
 
 export const LEVELS: readonly LevelSummary[] = [
   level(1, 'Primer vuelo', 'Instrucciones en secuencia', 'Dron granjero: riega 4 cultivos'),
-  level(2, 'Mensaje en botella', 'print() y cadenas', 'Faro pixel que emite señales de texto'),
+  level(2, 'Mensaje en botella', 'print() y cadenas', 'Faro con radar que confirma cada mensaje y llama al rescate'),
   level(3, 'La mochila', 'Variables y asignación', 'Inventario de un explorador'),
   level(4, 'Letreros de neón', 'Concatenación y str()', 'Carteles de una ciudad nocturna'),
   level(5, 'Jefe: el gran día de la granja', 'Repaso del mundo 1', 'Una jornada completa del dron'),

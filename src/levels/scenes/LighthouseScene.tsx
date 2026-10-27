@@ -7,7 +7,33 @@ const HEIGHT = 128
 /** El lienzo se dibuja al doble para que el texto salga nítido al mostrarlo a 448 px. */
 const SCALE = 2
 
-function drawLighthouse(context: CanvasRenderingContext2D, lines: string[]): void {
+interface LighthouseView {
+  lines: string[]
+  rescued: boolean
+}
+
+const RESTING: LighthouseView = { lines: [], rescued: false }
+
+function drawRings(context: CanvasRenderingContext2D, count: number): void {
+  context.lineWidth = 1
+  for (let index = 1; index <= count; index += 1) {
+    context.strokeStyle = `rgba(255, 216, 106, ${0.5 - index * 0.12})`
+    context.beginPath()
+    context.arc(44, 30, 8 + index * 10, 0, Math.PI * 2)
+    context.stroke()
+  }
+}
+
+function drawBoat(context: CanvasRenderingContext2D): void {
+  rect(context, 132, 104, 56, 8, '#f2f2f5')
+  rect(context, 132, 112, 56, 2, '#c7c7d1')
+  rect(context, 146, 96, 20, 8, '#e05263')
+  rect(context, 154, 88, 2, 8, '#f2f2f5')
+  label(context, '¡Vienen!', 160, 124, 8, '#ffe08a', 'center')
+}
+
+function drawLighthouse(context: CanvasRenderingContext2D, view: LighthouseView): void {
+  const { lines, rescued } = view
   context.setTransform(SCALE, 0, 0, SCALE, 0, 0)
   context.clearRect(0, 0, WIDTH, HEIGHT)
 
@@ -29,6 +55,7 @@ function drawLighthouse(context: CanvasRenderingContext2D, lines: string[]): voi
     context.lineTo(WIDTH, 70)
     context.closePath()
     context.fill()
+    drawRings(context, lines.length)
   }
 
   rect(context, 4, 86, 92, 12, '#242b46')
@@ -48,10 +75,12 @@ function drawLighthouse(context: CanvasRenderingContext2D, lines: string[]): voi
   context.fill()
 
   rect(context, 104, 14, 112, 76, '#0a1226')
-  context.strokeStyle = '#2b3550'
+  context.strokeStyle = rescued ? '#ffe08a' : '#2b3550'
   context.lineWidth = 2
   context.strokeRect(105, 15, 110, 74)
-  label(context, 'MENSAJES', 112, 30, 8, '#7f8db8')
+  label(context, rescued ? 'RESCATE' : 'MENSAJES', 112, 30, 8, rescued ? '#ffe08a' : '#7f8db8')
+
+  if (rescued) drawBoat(context)
 
   if (lines.length === 0) {
     label(context, 'sin señal', 112, 52, 9, '#7f8db8')
@@ -63,24 +92,24 @@ function drawLighthouse(context: CanvasRenderingContext2D, lines: string[]): voi
   })
 }
 
-/** Lienzo del faro: cada mensaje impreso enciende la lámpara y aparece en el panel. */
+/** Lienzo del faro: cada mensaje impreso enciende la lámpara, lanza un anillo y aparece en el panel. */
 export function LighthouseScene({ ref }: { ref?: Ref<SceneHandle> }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const aliveRef = useRef(true)
-  const [lines, setLines] = useState<string[]>([])
+  const [view, setView] = useState<LighthouseView>(RESTING)
 
-  const draw = useCallback((value: string[]) => {
+  const draw = useCallback((value: LighthouseView) => {
     const context = canvasRef.current?.getContext('2d')
     if (context) drawLighthouse(context, value)
   }, [])
 
   useEffect(() => {
     aliveRef.current = true
-    draw(lines)
+    draw(view)
     return () => {
       aliveRef.current = false
     }
-  }, [lines, draw])
+  }, [view, draw])
 
   const play = useCallback(
     async (steps: SceneStep[]) => {
@@ -93,7 +122,7 @@ export function LighthouseScene({ ref }: { ref?: Ref<SceneHandle> }) {
       for (const step of steps) {
         if (step.kind !== 'lighthouse') continue
         if (!aliveRef.current) return
-        setLines(step.lines)
+        setView({ lines: step.lines, rescued: step.rescued })
         await wait(460)
       }
     },
@@ -101,13 +130,15 @@ export function LighthouseScene({ ref }: { ref?: Ref<SceneHandle> }) {
   )
 
   const reset = useCallback(() => {
-    setLines([])
+    setView(RESTING)
   }, [])
 
   useImperativeHandle(ref, () => ({ play, reset }), [play, reset])
 
   const description =
-    lines.length === 0 ? 'El faro está apagado.' : `El faro ha enviado: ${lines.join(', ')}.`
+    view.lines.length === 0
+      ? 'El faro está apagado.'
+      : `El faro ha enviado: ${view.lines.join(', ')}.${view.rescued ? ' El barco de rescate viene.' : ''}`
 
   return (
     <div className="field">
