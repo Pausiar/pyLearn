@@ -28,6 +28,7 @@ export type SceneStep =
     }
   | { kind: 'drone'; x: number; watered: number[] }
   | { kind: 'lighthouse'; lines: string[]; rescued: boolean }
+  | { kind: 'plan'; lines: string[]; done: boolean }
   | { kind: 'backpack'; ropes: number; canteens: number; placed: boolean }
   | { kind: 'sign'; text: string; lit: boolean }
   | { kind: 'rocket'; fuel: number; sent: boolean }

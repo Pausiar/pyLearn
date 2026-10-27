@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react'
+import { SIGN_GOAL } from '../../engine/signs'
 import type { SceneHandle, SceneStep } from '../../engine/scene'
 import { label, rect } from '../../pixel/shapes'
 
@@ -6,75 +7,105 @@ const WIDTH = 224
 const HEIGHT = 128
 /** El lienzo se dibuja al doble para que el texto salga nítido al mostrarlo a 448 px. */
 const SCALE = 2
+const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace'
 
 interface SignView {
   text: string
   lit: boolean
 }
 
-function drawSign(context: CanvasRenderingContext2D, view: SignView): void {
-  context.setTransform(SCALE, 0, 0, SCALE, 0, 0)
-  context.clearRect(0, 0, WIDTH, HEIGHT)
+const RESTING: SignView = { text: '', lit: false }
 
-  rect(context, 0, 0, WIDTH, HEIGHT, '#0a0f24')
-  for (let index = 0; index < 14; index += 1) {
-    rect(context, ((index * 31) % 210) + 6, ((index * 17) % 34) + 6, 2, 2, '#2b3555')
+function drawWall(context: CanvasRenderingContext2D): void {
+  rect(context, 0, 0, WIDTH, HEIGHT, '#14101f')
+  for (let row = 0; row < 8; row += 1) {
+    rect(context, 0, row * 16, WIDTH, 1, '#1d1830')
+    const offset = row % 2 ? 0 : 12
+    for (let x = offset - 24; x < WIDTH; x += 24) rect(context, x, row * 16 + 1, 1, 15, '#1d1830')
   }
-
-  rect(context, 176, 18, 10, 10, '#f2f0d8')
-  rect(context, 20, 76, 40, 52, '#111830')
-  rect(context, 70, 62, 34, 66, '#141c38')
-  rect(context, 156, 70, 44, 58, '#111830')
-
-  for (let index = 0; index < 6; index += 1) {
-    rect(context, 26 + (index % 2) * 14, 84 + Math.floor(index / 2) * 12, 6, 6, '#2a3555')
-    rect(context, 162 + (index % 2) * 14, 78 + Math.floor(index / 2) * 12, 6, 6, '#2a3555')
-  }
-
-  rect(context, 18, 26, 188, 58, '#0f1730')
-
-  context.save()
-  context.strokeStyle = view.lit ? '#ff5d73' : '#39405a'
-  context.lineWidth = 3
-  if (view.lit) {
-    context.shadowColor = 'rgba(255, 93, 115, 0.85)'
-    context.shadowBlur = 14
-  }
-  context.strokeRect(20, 28, 184, 54)
-  context.restore()
-
-  const value = view.text === '' ? '···' : view.text
-  let size = 20
-  context.font = `700 ${size}px ui-monospace, SFMono-Regular, Menlo, monospace`
-  while (size > 8 && context.measureText(value).width > 164) {
-    size -= 1
-    context.font = `700 ${size}px ui-monospace, SFMono-Regular, Menlo, monospace`
-  }
-
-  context.save()
-  if (view.lit) {
-    context.shadowColor = 'rgba(255, 215, 106, 0.9)'
-    context.shadowBlur = 12
-  }
-  label(context, value, 112, 62, size, view.lit ? '#ffd76a' : '#4a5270', 'center')
-  context.restore()
-
-  label(context, 'CIUDAD DE NEÓN', 112, 104, 8, '#7f8db8', 'center')
+  rect(context, 0, 112, WIDTH, 16, '#0a0712')
 }
 
-/** Lienzo del letrero: se enciende con el texto que le pasa el programa. */
+function drawSign(context: CanvasRenderingContext2D, view: SignView, elapsed: number, reduced: boolean): void {
+  context.setTransform(SCALE, 0, 0, SCALE, 0, 0)
+  context.clearRect(0, 0, WIDTH, HEIGHT)
+  drawWall(context)
+
+  // Marco metálico con sombra y el tubo oscuro detrás.
+  rect(context, 12, 30, 200, 60, '#0a0712')
+  rect(context, 10, 28, 200, 60, '#2b2a3a')
+  rect(context, 10, 28, 200, 2, '#44425a')
+  rect(context, 14, 32, 192, 52, '#120e1c')
+
+  if (!view.lit) {
+    context.font = `600 14px ${MONO}`
+    context.fillStyle = '#2e2a3f'
+    context.textAlign = 'center'
+    context.fillText(SIGN_GOAL, 112, 66)
+    return
+  }
+
+  const expected = [...SIGN_GOAL]
+  const shown = [...view.text]
+  const wrong = new Set<number>()
+  for (let i = 0; i < Math.max(expected.length, shown.length); i += 1) {
+    if (expected[i] !== shown[i]) wrong.add(i)
+  }
+
+  // Cada letra se enciende con un pequeño retraso; las mal escritas parpadean en rojo.
+  const cell = 11.5
+  const startX = 112 - (shown.length * cell) / 2
+  shown.forEach((character, index) => {
+    const age = reduced ? 1 : Math.min((elapsed - index * 90) / 260, 1)
+    if (age <= 0) return
+    const isWrong = wrong.has(index)
+    const flicker = isWrong && !reduced ? (Math.sin(elapsed / 90 + index) > 0 ? 1 : 0.25) : 1
+    context.globalAlpha = age * flicker
+    context.font = `700 15px ${MONO}`
+    context.textAlign = 'left'
+    context.textBaseline = 'middle'
+    context.fillStyle = isWrong ? '#ff5a6a' : '#ff5fa2'
+    context.fillText(character, startX + index * cell, 58)
+    context.globalAlpha = 1
+  })
+
+  context.textAlign = 'center'
+  context.textBaseline = 'alphabetic'
+  context.font = `600 9px ${MONO}`
+  if (wrong.size > 0) {
+    context.fillStyle = '#ffb3bb'
+    context.fillText('Revisa las letras en rojo', 112, 104)
+  } else {
+    context.fillStyle = '#a3ffc4'
+    context.fillText('ABIERTO · 24 HORAS', 112, 104)
+  }
+  label(context, 'CIUDAD DE NEÓN', 112, 120, 6, '#7f8db8', 'center')
+}
+
+/** Lienzo del letrero: se enciende letra a letra con el texto que le pasa el programa. */
 export function SignsScene({ ref }: { ref?: Ref<SceneHandle> }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const aliveRef = useRef(true)
-  const [view, setView] = useState<SignView>({ text: '', lit: false })
+  const bornRef = useRef(0)
+  const [view, setView] = useState<SignView>(RESTING)
 
   useEffect(() => {
     aliveRef.current = true
+    bornRef.current = performance.now()
     const context = canvasRef.current?.getContext('2d')
-    if (context) drawSign(context, view)
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    let frame = 0
+    if (context) {
+      const tick = (now: number) => {
+        drawSign(context, view, now - bornRef.current, reduced)
+        if (!reduced) frame = window.requestAnimationFrame(tick)
+      }
+      tick(performance.now())
+    }
 
     return () => {
       aliveRef.current = false
+      window.cancelAnimationFrame(frame)
     }
   }, [view])
 
@@ -86,13 +117,13 @@ export function SignsScene({ ref }: { ref?: Ref<SceneHandle> }) {
       if (!aliveRef.current) return
       setView({ text: step.text, lit: step.lit })
       await new Promise<void>((resolve) => {
-        window.setTimeout(resolve, reduced ? 0 : 360)
+        window.setTimeout(resolve, reduced ? 0 : 480)
       })
     }
   }, [])
 
   const reset = useCallback(() => {
-    setView({ text: '', lit: false })
+    setView(RESTING)
   }, [])
 
   useImperativeHandle(ref, () => ({ play, reset }), [play, reset])

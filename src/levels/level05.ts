@@ -1,69 +1,34 @@
-import {
-  CROPS,
-  createApi,
-  createField,
-  droneSteps,
-  isComplete,
-  wateredCount,
-  type DroneAction,
-} from '../engine/drone'
-import { DroneScene } from './scenes/DroneScene'
+import { judgePlan, planSteps } from '../engine/plan'
+import { PlanScene } from './scenes/PlanScene'
 import type { PlayableLevel } from './types'
-
-const MESSAGE = 'Hoy riego 4 cultivos'
 
 export const PLAYABLE_05: PlayableLevel = {
   id: 5,
-  title: 'El gran día de la granja',
+  title: 'Plan de la jornada',
   concept: 'Repaso del mundo 1',
   story:
-    'Último día en la granja. Primero anuncia la jornada con un solo print() que diga exactamente «Hoy riego 4 cultivos», usando una variable. Después riega los cuatro cultivos con el dron, como en el primer vuelo.',
+    'Último día en la granja. Antes de salir, escribe el plan con print(): tres líneas que digan «Hora 6: Riego», «Hora 7: Cosecha» y «Hora 9: Venta». Guarda cada hora en una variable y únela con str(). El sol sale con cada línea que escribes.',
   hint:
-    'Guarda 4 en una variable y anúncialo con print("Hoy riego " + str(cultivos) + " cultivos"). Después repite avanzar() y regar() como en el primer vuelo. Consigue 3 estrellas con 10 líneas o menos.',
-  starter: [
-    '# El gran día empieza con un mensaje.',
-    'cultivos = 4',
-    '# 1. Anuncia la jornada con print().',
-    '# 2. Riega los cuatro cultivos.',
-  ].join('\n'),
+    'Guarda 6, 7 y 9 en variables. Cada línea es un print("Hora " + str(h) + ": ..."), con el texto exacto. Consigue 3 estrellas con 6 líneas o menos.',
+  starter: ['# El plan del día está en blanco.', '# Escribe las tres líneas con print().'].join('\n'),
   solution: [
-    'cultivos = 4',
-    'print("Hoy riego " + str(cultivos) + " cultivos")',
-    'avanzar()',
-    'regar()',
-    'avanzar()',
-    'regar()',
-    'avanzar()',
-    'regar()',
-    'avanzar()',
-    'regar()',
+    'h1 = 6',
+    'h2 = 7',
+    'h3 = 9',
+    'print("Hora " + str(h1) + ": Riego")',
+    'print("Hora " + str(h2) + ": Cosecha")',
+    'print("Hora " + str(h3) + ": Venta")',
   ].join('\n'),
-  par: 10,
-  sceneTitle: 'El campo',
-  success: 'Jornada completada.',
-  Scene: DroneScene,
+  par: 6,
+  sceneTitle: 'El plan',
+  success: 'Plan de la jornada completo.',
+  Scene: PlanScene,
   start() {
-    const field = createField()
-    const actions: DroneAction[] = []
-
     return {
-      api: createApi(field, actions),
+      api: {},
       finish(result) {
-        const watered = isComplete(field)
-        const announced = result.output.length === 1 && result.output[0] === MESSAGE
-        const missing = CROPS.length - wateredCount(field)
-
-        let text = ''
-        if (!watered) {
-          text =
-            missing === 1
-              ? 'Falta 1 cultivo por regar.'
-              : `Faltan ${missing} cultivos por regar.`
-        } else if (!announced) {
-          text = `El mensaje no es el esperado. Tiene que decir «${MESSAGE}», y solo eso.`
-        }
-
-        return { complete: watered && announced, missing: text, steps: droneSteps(actions) }
+        const verdict = judgePlan(result.output)
+        return { ...verdict, steps: planSteps(result.output, verdict.complete) }
       },
     }
   },

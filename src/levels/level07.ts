@@ -24,7 +24,7 @@ export const PLAYABLE_07: PlayableLevel = {
   ].join('\n'),
   par: 5,
   sceneTitle: 'La tienda',
-  success: 'La caja ha cuadradado.',
+  success: 'La caja ha cuadrado.',
   Scene: ShopScene,
   start() {
     const shop = createShop()

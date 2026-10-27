@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react'
+import { ROCKET_FUEL, ROCKET_TANKS } from '../../engine/rocket'
 import type { SceneHandle, SceneStep } from '../../engine/scene'
 import { label, rect } from '../../pixel/shapes'
 
@@ -6,70 +7,102 @@ const WIDTH = 224
 const HEIGHT = 128
 /** El lienzo se dibuja al doble para que el texto salga nítido al mostrarlo a 448 px. */
 const SCALE = 2
+const MAX_GAUGE = 84
 
 interface RocketView {
   fuel: number
   sent: boolean
 }
 
-function drawRocket(context: CanvasRenderingContext2D, view: RocketView): void {
-  context.setTransform(SCALE, 0, 0, SCALE, 0, 0)
-  context.clearRect(0, 0, WIDTH, HEIGHT)
+const RESTING: RocketView = { fuel: 0, sent: false }
 
-  rect(context, 0, 0, WIDTH, HEIGHT, '#0b1024')
-  for (let index = 0; index < 16; index += 1) {
-    rect(context, ((index * 27) % 210) + 6, ((index * 19) % 36) + 6, 2, 2, '#2f3a63')
-  }
-
-  rect(context, 0, 104, WIDTH, 24, '#232a44')
-  rect(context, 0, 104, WIDTH, 2, '#39405f')
-
-  rect(context, 84, 84, 8, 20, '#e05263')
-  rect(context, 128, 84, 8, 20, '#e05263')
-  rect(context, 92, 44, 36, 60, '#e8ecf5')
-  rect(context, 92, 44, 36, 8, '#c9cfdd')
-  rect(context, 104, 58, 12, 12, '#5ad1ff')
-
-  context.fillStyle = '#e05263'
-  context.beginPath()
-  context.moveTo(92, 44)
-  context.lineTo(110, 20)
-  context.lineTo(128, 44)
-  context.closePath()
-  context.fill()
-
-  if (view.sent) {
-    context.fillStyle = '#ffb04a'
-    context.beginPath()
-    context.moveTo(98, 104)
-    context.lineTo(110, 124)
-    context.lineTo(122, 104)
-    context.closePath()
-    context.fill()
-  }
-
-  rect(context, 152, 26, 62, 74, '#0a1226')
-  context.strokeStyle = '#2b3550'
-  context.lineWidth = 2
-  context.strokeRect(153, 27, 60, 72)
-  label(context, 'TONELADAS', 183, 44, 8, '#7f8db8', 'center')
-  label(context, view.sent ? String(view.fuel) : '—', 183, 78, 24, '#e8f1ff', 'center')
-  label(context, view.sent ? 'en la torre' : 'sin datos', 183, 94, 8, '#7f8db8', 'center')
+function drawHangar(context: CanvasRenderingContext2D): void {
+  rect(context, 0, 0, WIDTH, HEIGHT, '#0e1420')
+  rect(context, 0, 100, WIDTH, 28, '#1a2232')
+  rect(context, 0, 100, WIDTH, 2, '#2c3648')
 }
 
-/** Lienzo del cohete: muestra las toneladas que recibe la torre. */
+function drawGauge(context: CanvasRenderingContext2D, fuel: number, sent: boolean): void {
+  // Siete tanques en fila, cada uno con su nivel; la cifra enviada rellena el depósito entero.
+  const fill = Math.min(fuel, MAX_GAUGE) / MAX_GAUGE
+  const colour = !sent ? '#4a5575' : fuel === ROCKET_FUEL ? '#4ce07a' : fuel > ROCKET_FUEL ? '#ff7b6b' : '#ffd86a'
+  for (let tank = 0; tank < ROCKET_TANKS; tank += 1) {
+    const x = 30 + tank * 20
+    rect(context, x, 40, 16, 44, '#1d2638')
+    const level = sent ? Math.max(0, Math.min(1, fill * ROCKET_TANKS - tank)) : 0
+    rect(context, x + 2, 42 + (40 - level * 40), 12, level * 40, colour)
+    rect(context, x, 40, 16, 2, '#3a4560')
+  }
+  label(context, sent ? `${fuel} t` : '— t', 112, 30, 10, '#e8f1ff', 'center')
+}
+
+function drawRocket(context: CanvasRenderingContext2D, view: RocketView, elapsed: number, reduced: boolean): void {
+  context.setTransform(SCALE, 0, 0, SCALE, 0, 0)
+  context.clearRect(0, 0, WIDTH, HEIGHT)
+  drawHangar(context)
+
+  drawGauge(context, view.fuel, view.sent)
+
+  // El cohete sube unos píxeles si la torre confirma la cifra exacta.
+  const confirmed = view.sent && view.fuel === ROCKET_FUEL
+  const lift = confirmed ? (reduced ? 18 : Math.min(elapsed / 600, 1) * 18) : 0
+  const cx = 186
+  const base = 92 - lift
+  rect(context, cx - 8, base - 40, 16, 40, '#f2f2f5')
+  rect(context, cx - 8, base - 40, 4, 40, '#c9c9d4')
+  rect(context, cx - 3, base - 46, 6, 6, '#e05263')
+  rect(context, cx - 12, base - 22, 4, 14, '#e05263')
+  rect(context, cx + 8, base - 22, 4, 14, '#e05263')
+  if (confirmed && !reduced) {
+    const flame = Math.sin(elapsed / 60) * 2
+    rect(context, cx - 4, base + 1, 8, 4 + flame, '#ffb36b')
+  }
+
+  // Cuenta atrás al confirmar: 3, 2, 1, despegue.
+  if (confirmed) {
+    const stage = reduced ? 3 : Math.min(Math.floor(elapsed / 700), 3)
+    const text = ['3', '2', '1', '¡DESPEGUE!'][stage]
+    label(context, text, 112, 74, stage === 3 ? 9 : 14, '#4ce07a', 'center')
+  }
+
+  if (view.sent && !confirmed) {
+    rect(context, 14, 84, 92, 12, '#2a1d24')
+    label(
+      context,
+      view.fuel > ROCKET_FUEL ? 'Revisa la resta' : 'Falta combustible',
+      60,
+      93,
+      8,
+      '#ffb3bb',
+      'center',
+    )
+  }
+}
+
+/** Lienzo del cohete: el depósito se llena con la cifra de la torre y despega si es la exacta. */
 export function RocketScene({ ref }: { ref?: Ref<SceneHandle> }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const aliveRef = useRef(true)
-  const [view, setView] = useState<RocketView>({ fuel: 0, sent: false })
+  const bornRef = useRef(0)
+  const [view, setView] = useState<RocketView>(RESTING)
 
   useEffect(() => {
     aliveRef.current = true
+    bornRef.current = performance.now()
     const context = canvasRef.current?.getContext('2d')
-    if (context) drawRocket(context, view)
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    let frame = 0
+    if (context) {
+      const tick = (now: number) => {
+        drawRocket(context, view, now - bornRef.current, reduced)
+        if (!reduced) frame = window.requestAnimationFrame(tick)
+      }
+      tick(performance.now())
+    }
 
     return () => {
       aliveRef.current = false
+      window.cancelAnimationFrame(frame)
     }
   }, [view])
 
@@ -81,13 +114,13 @@ export function RocketScene({ ref }: { ref?: Ref<SceneHandle> }) {
       if (!aliveRef.current) return
       setView({ fuel: step.fuel, sent: step.sent })
       await new Promise<void>((resolve) => {
-        window.setTimeout(resolve, reduced ? 0 : 320)
+        window.setTimeout(resolve, reduced ? 0 : 480)
       })
     }
   }, [])
 
   const reset = useCallback(() => {
-    setView({ fuel: 0, sent: false })
+    setView(RESTING)
   }, [])
 
   useImperativeHandle(ref, () => ({ play, reset }), [play, reset])
