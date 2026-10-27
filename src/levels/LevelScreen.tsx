@@ -10,7 +10,7 @@ import {
   wateredCount,
   type DroneAction,
 } from '../engine/drone'
-import { runPrototype } from '../interp/prototype'
+import { run as runProgram } from '../interp/run'
 import { DroneField, type DroneFieldHandle } from './DroneField'
 import { LEVEL_01, starsForLines } from './level01'
 import { levelById } from './catalog'
@@ -64,15 +64,17 @@ export function LevelScreen({ levelId, progress, onChange }: LevelScreenProps) {
 
     const field = createField()
     const actions: DroneAction[] = []
-    const result = runPrototype(code, createApi(field, actions))
+    const result = runProgram(code, createApi(field, actions))
     await sceneRef.current?.play(actions)
+
+    const printed = result.output.length > 0 ? `${result.output.join('\n')}\n` : ''
 
     if (result.error) {
       const applied = applyRun(progress, LEVEL_01.id, { failed: true })
       onChange(applied.progress)
       setMessage({
         tone: 'error',
-        text: `Línea ${result.error.line}: ${result.error.message}${applied.recovered ? RECOVERY : ''}`,
+        text: `${printed}Línea ${result.error.line}: ${result.error.message}${applied.recovered ? RECOVERY : ''}`,
       })
       setRunning(false)
       return
@@ -84,7 +86,7 @@ export function LevelScreen({ levelId, progress, onChange }: LevelScreenProps) {
       const tip = stars < 3 ? '\nPrueba con 8 líneas o menos para las 3 estrellas.' : ''
       setMessage({
         tone: 'ok',
-        text: `Cultivos regados. ${stars} de 3 estrellas (${result.lines} líneas).${tip}`,
+        text: `${printed}Cultivos regados. ${stars} de 3 estrellas (${result.lines} líneas).${tip}`,
       })
       setRunning(false)
       return
@@ -96,7 +98,7 @@ export function LevelScreen({ levelId, progress, onChange }: LevelScreenProps) {
     const what = missing === 1 ? 'Falta 1 cultivo por regar.' : `Faltan ${missing} cultivos por regar.`
     setMessage({
       tone: 'error',
-      text: `${what} Avanza hasta cada planta y riega.${applied.recovered ? RECOVERY : ''}`,
+      text: `${printed}${what} Avanza hasta cada planta y riega.${applied.recovered ? RECOVERY : ''}`,
     })
     setRunning(false)
   }

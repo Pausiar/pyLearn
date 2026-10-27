@@ -10,7 +10,7 @@ Sitio estático: sin backend, sin cuentas, sin llamadas de red en ejecución.
 | Fase | Contenido | Estado |
 | --- | --- | --- |
 | 0 | Base, despliegue y nivel 1 jugable | Hecha |
-| 1 | Intérprete real (lexer, parser, AST, traza) | Pendiente |
+| 1 | Intérprete real (lexer, parser, AST, traza) | Hecha |
 | 2 | Mapa completo e interfaz de progreso | Pendiente |
 | 3 | Motor de minijuegos y test de soluciones | Pendiente |
 | 4 a 11 | Un mundo por fase | Pendiente |
@@ -36,7 +36,7 @@ src/
   app/      shell, rutas por hash, tema, progreso, ajustes
   map/      mapa de hexágonos y ficha de nivel
   editor/   editor de código y consola
-  interp/   intérprete del subconjunto de Python (prototipo en la fase 0)
+  interp/   intérprete de Python: lexer, parser, evaluador y funciones integradas
   engine/   lógica headless de los minijuegos
   levels/   catálogo de niveles y el nivel 1
   pixel/    paleta, sprites y dibujo del lienzo

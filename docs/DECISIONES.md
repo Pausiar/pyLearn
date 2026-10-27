@@ -16,15 +16,31 @@ Fase 0. Todo lo que el encargo dejaba abierto se decidió así.
 
 ## Intérprete
 
-- Es un **prototipo** (`src/interp/prototype.ts`), no el intérprete final: cubre llamadas,
-  asignación, texto, `for` con `range` y aritmética. La Fase 1 lo sustituye por lexer con
-  INDENT/DEDENT, parser a AST y evaluador con traza, manteniendo la misma interfaz pública.
-- **Limitación conocida y probada**: evalúa de izquierda a derecha, sin precedencia (`2 + 3 * 2` da
-  10). El nivel 1 no la necesita y hay un test que la documenta para que no se olvide.
-- **Seguridad**: no hay `eval` ni `new Function`; el código del alumno solo se interpreta. Hay tope
-  de 20 000 sentencias y los errores de la API se convierten en errores de línea.
-- Los errores se devuelven como datos (`{ line, message }`), no como excepciones que lleguen a la
-  interfaz.
+Fase 1. Cuatro piezas con una responsabilidad cada una, en `src/interp/`:
+
+- `lexer.ts`: tokens con **INDENT y DEDENT** como CPython, para que el parser reciba bloques ya
+  delimitados. Los comentarios se ignoran solo fuera de las cadenas; la sangría con tabuladores es
+  un error con su línea.
+- `parser.ts`: descenso recursivo con la **precedencia real de Python** (`2 + 3 * 2` da 8; las
+  potencias agrupan por la derecha) y comparaciones encadenadas (`1 < x < 10`).
+- `evaluator.ts`: recorre el AST con ámbitos encadenados, `if/elif/else`, `while`, `for`, `break`,
+  `continue`, `def` con parámetros y `return`, recursión, y `print()` que acumula salida.
+- `run.ts`: la única función que ven los niveles, `run(code, api)`. Devuelve `{ lines, output,
+  error? }` y el error lleva `line` y un mensaje en español.
+
+Lenguaje cubierto: enteros y decimales, textos, booleanos y `None`; `+ - * / // % **`;
+comparaciones, `and`, `or` y `not`; `range`, `len`, `int`, `float`, `str`, `bool`, `abs`, `round`,
+`min` y `max`. **No** incluye listas, diccionarios, f-strings ni clases: llegan con sus mundos.
+
+Límites: 20 000 sentencias y 200 llamadas anidadas, para que un bucle infinito o una recursión sin
+fondo terminen con un mensaje y no cuelguen la pestaña. La traza que anima el nivel es la lista de
+acciones que registra su propia API (`engine/drone.ts`), no una copia del estado.
+
+Seguridad: no hay `eval` ni `new Function`; el código del alumno solo se interpreta. Los errores de
+la API se convierten en errores de su línea y lo impreso antes de fallar se conserva.
+
+El prototipo de la Fase 0 (`prototype.ts`) se ha eliminado: su comportamiento, incluida la falta de
+precedencia, queda cubierto por las pruebas del intérprete nuevo.
 
 ## Progreso
 
@@ -65,9 +81,11 @@ restantes, sonido, modo libre, Pyodide.
 
 ## Verificación
 
-- `npm run lint`, `npm test` (39 pruebas), `npm run build` y `npx tsc --noEmit` pasan.
-- Hallmark `sloplint --scope app`: **0 FAIL, 0 WARN**, 10 avisos de `7b` cubiertos por la excepción
-  declarada (la paleta la fija el encargo).
+- `npm run lint`, `npm test` (99 pruebas), `npm run build` y `npx tsc --noEmit` pasan.
+- Hallmark `sloplint --scope app` sobre `src`: **0 FAIL, 0 WARN**, 10 avisos de `7b` cubiertos por
+  la excepción declarada (la paleta la fija el encargo). En la Fase 1 destapó 6 SVG sin
+  `aria-hidden` legible para su análisis estático (lo llevaban por spread); ahora está literal en
+  cada icono.
 - **Pendiente**: capa de render de sloplint, capturas y Lighthouse. En esta máquina no hay Chrome.
   El despliegue real tampoco se ha ejecutado: el workflow corre en el primer push a `main` y hace
   falta activar Pages con origen «GitHub Actions».

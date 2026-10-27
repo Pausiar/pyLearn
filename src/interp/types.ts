@@ -1,8 +1,11 @@
-/** Un valor que el intérprete entiende hoy: número o texto. */
-export type Value = number | string
+/**
+ * Valor simple que viaja entre la API de un nivel y el código del alumno:
+ * números, textos, booleanos y None.
+ */
+export type Scalar = number | string | boolean | null
 
 /** Funciones que un nivel ofrece al código del alumno. */
-export type Api = Record<string, (...args: Value[]) => void>
+export type Api = Record<string, (...args: Scalar[]) => void>
 
 /**
  * Error lanzado por la API de un minijuego. El intérprete lo convierte en un

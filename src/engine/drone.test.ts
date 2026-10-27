@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { runPrototype } from '../interp/prototype'
+import { run } from '../interp/run'
 import { LEVEL_01, starsForLines } from '../levels/level01'
 import { createApi, createField, describeField, isComplete, type DroneAction } from './drone'
 
 function play(source: string) {
   const field = createField()
   const actions: DroneAction[] = []
-  const result = runPrototype(source, createApi(field, actions))
+  const result = run(source, createApi(field, actions))
   return { field, actions, result }
 }
 
