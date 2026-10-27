@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PyLearn: aprende Python jugando</title>
+<style>
+:root{--bg:#f5f5f7;--cd:#fff;--tx:#1d1d1f;--mu:#6e6e73;--ac:#0071e3;--ok:#248a3d;--lk:#d2d2d7;--bd:rgba(0,0,0,.09);--er:#d70015;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--cd:#1c1c1e;--tx:#f5f5f7;--mu:#a1a1a6;--ac:#0a84ff;--lk:#3a3a3c;--bd:rgba(255,255,255,.13);--er:#ff6961;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#000;--cd:#1c1c1e;--tx:#f5f5f7;--mu:#a1a1a6;--ac:#0a84ff;--lk:#3a3a3c;--bd:rgba(255,255,255,.13);--er:#ff6961;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:11;display:flex;align-items:center;gap:10px;padding:8px 16px;background:color-mix(in srgb,var(--bg) 80%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.8);backdrop-filter:blur(20px) saturate(1.8);border-bottom:1px solid var(--bd)}
+header b{font-size:19px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+#hud{margin-left:auto;font-size:15px;white-space:nowrap}
+#hud i{font-style:normal;color:var(--er)}
+.w{max-width:560px;margin:0 auto}
+.b{min-height:44px;padding:0 20px;border:0;border-radius:12px;font:600 16px -apple-system,system-ui,sans-serif;background:var(--ac);color:#fff;cursor:pointer}
+.b.s{background:var(--cd);color:var(--ac);border:1px solid var(--bd)}
+.b:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.card{background:var(--cd);border-radius:20px;border:1px solid var(--bd);padding:16px;margin:12px 16px}
+h1,h2{margin:0 0 6px;letter-spacing:-.025em;line-height:1.15}
+h1{font-size:30px}h2{font-size:24px}
+.mu{color:var(--mu);font-size:14px;margin:0 0 4px}
+#hx{display:block;width:100%;height:auto;max-width:420px;margin:0 auto}
+.wl{font:600 13px -apple-system,system-ui,sans-serif;fill:var(--mu);paint-order:stroke;stroke:var(--bg);stroke-width:6px}
+.pa{fill:none;stroke:var(--lk);stroke-width:4;stroke-dasharray:2 10;stroke-linecap:round}
+.n{cursor:pointer}
+.n polygon{fill:var(--lk)}
+.n .rg{fill:none;stroke:var(--lk);stroke-width:3}
+.n.done polygon{fill:var(--ok)}.n.done .rg{fill:none;stroke:var(--ok)}
+.n.cur polygon{fill:var(--ac)}.n.cur .rg{fill:none;stroke:var(--ac)}
+.n text{font:700 19px -apple-system,system-ui,sans-serif;fill:var(--mu);pointer-events:none}
+.n.done text,.n.cur text{fill:#fff}
+.n text.sr{font-size:13px;fill:var(--ok)}
+.n:focus-visible{outline:none}.n:focus-visible polygon:not(.rg){stroke:var(--tx);stroke-width:3}
+@media(prefers-reduced-motion:no-preference){.n.cur polygon:not(.rg){transform-box:fill-box;transform-origin:center;animation:pl 1.8s ease-in-out infinite}@keyframes pl{50%{transform:scale(1.09)}}}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated;border-radius:12px;background:#8fd3ff}
+textarea{display:block;width:100%;box-sizing:border-box;min-height:190px;margin:8px 0 12px;padding:12px;font:15px/1.55 ui-monospace,"SF Mono",Menlo,Consolas,monospace;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:12px;resize:vertical;tab-size:4}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+#out{margin-top:12px;font:14px/1.5 ui-monospace,"SF Mono",Menlo,monospace;white-space:pre-wrap;min-height:22px}
+#out.e{color:var(--er)}#out.g{color:var(--ok);font-weight:600}
+details{margin-top:12px;color:var(--mu);font-size:15px}summary{cursor:pointer;min-height:24px}
+dialog{border:0;border-radius:22px;padding:0;background:var(--cd);color:var(--tx);width:min(420px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog .card{margin:0;border:0}
+</style></head><body>
+<header>
+<button class="b s" id="bk" hidden aria-label="Volver al mapa">‹ Mapa</button>
+<b id="ttl"><svg width="24" height="24" viewBox="-12 -12 24 24" aria-hidden="true"><polygon points="0,-11 9.5,-5.5 9.5,5.5 0,11 -9.5,5.5 -9.5,-5.5" fill="var(--ac)"/></svg>PyLearn</b>
+<span id="hud"></span>
+</header>
+<main id="map" class="w"><svg id="hx" role="group" aria-label="Mapa de 40 niveles"></svg></main>
+<section id="lv" class="w" hidden>
+<div class="card"><p class="mu">Mundo 1: Despegue</p><h1>Nivel 1: Primer vuelo</h1>
+<p>El dron está en el hangar y cuatro cultivos se están secando. Escribe las instrucciones para que avance hasta cada uno y lo riegue. Python lee tus líneas en orden, de arriba abajo.</p>
+<details><summary>Pista</summary><p>Cada <code>avanzar()</code> mueve el dron una casilla a la derecha. <code>regar()</code> riega el cultivo que tiene debajo. Avanza, riega, y repite con cada planta. Consigue 3 estrellas con 8 líneas o menos.</p></details></div>
+<div class="card" style="padding:8px"><canvas id="cv" width="224" height="128" role="img" aria-label="Campo de cultivo visto de lado: un dron en el hangar a la izquierda y cuatro plantas secas en fila"></canvas></div>
+<div class="card"><label for="ed"><b>Tu código Python</b></label>
+<textarea id="ed" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+<div class="row"><button class="b" id="go">▶ Ejecutar</button><button class="b s" id="rs">Reiniciar campo</button></div>
+<div id="out" aria-live="polite"></div></div>
+</section>
+<dialog id="dg"><div class="card"><p class="mu" id="dw"></p><h2 id="dt"></h2><p id="dc"></p><p id="dm"></p><p class="mu">Este nivel llega en la versión completa.</p><button class="b" id="dx">Entendido</button></div></dialog>
+<script>
+const $=s=>document.querySelector(s);
+const WN=['Despegue','Números y decisiones','Bucles','Listas','Funciones','Datos','Errores y módulos','Objetos'];
+// Plan: Nombre|Concepto|Minijuego (cada 5º nivel es un jefe de mundo)
+const LV=`Primer vuelo|Instrucciones en secuencia|Dron granjero: riega 4 cultivos
+Mensaje en botella|print() y texto|Faro pixel que emite señales de texto
+La mochila|Variables|Guarda objetos con nombre en el inventario de un explorador
+Letreros de neón|Cadenas y f-strings|Monta los carteles de una ciudad nocturna
+Jefe: el gran día de la granja|Repaso del mundo 1|Programa una jornada completa del dron
+Combustible|Números y operadores|Calcula el combustible de un cohete
+La tienda|input() y conversiones|Cajero de una tienda pixel
+La cerradura|Booleanos y comparaciones|Abre una puerta con lógica
+El semáforo|if y else|Decide cuándo cruza un peatón
+Jefe: el guardián|elif y varios caminos|Valida pases en la puerta de un castillo
+Riego en bucle|for y range|El dron riega 100 cultivos con 3 líneas
+El minero|while|Un robot excava hasta agotar la veta
+Hackeo simulado|Bucles y condiciones|Un PC prueba contraseñas contra una cuenta ficticia
+El escáner|break y continue|Revisa pasillos y salta los vacíos
+Jefe: el campo entero|Bucles anidados|Riega una cuadrícula de cultivos
+El tren|Listas e índices|Accede a cada vagón por su posición
+El repartidor|Recorrer listas|Entrega un paquete en cada casa
+La pizzería|append, remove y sort|Gestiona la cola de pedidos
+Rebanadas|Slicing|Corta tiras de un tren de vagones
+Jefe: mochila de aventurero|Listas y bucles|Ordena el inventario de un RPG
+El truco nuevo|def|Enseña una acción nueva a un robot
+Pizzas a medida|Parámetros|Prepara pedidos distintos con una sola receta
+La expendedora|return|Devuelve el cambio exacto
+Laboratorios|Variables locales y globales|Aísla experimentos en salas separadas
+Jefe: cocina modular|Funciones que se combinan|Dirige un restaurante con recetas
+La agenda|Diccionarios|Guarda contactos en una nave
+El censo|items() y recorridos|Cuenta habitantes de una colonia
+Cromos únicos|Tuplas y sets|Completa un álbum sin repetidos
+Cazamonstruos|Comprensiones de listas|Filtra monstruos en una línea
+Jefe: el archivo|Datos combinados|Consulta la base de datos de un museo
+El puente|try y except|Evita que el puente se derrumbe
+Dados|Módulos: random y math|Lanza dados y tira el azar
+El diario|Leer y escribir archivos|Guarda el diario del capitán
+Cazabichos|Depuración|Encuentra el error en un código roto
+Jefe: aventura de texto|Funciones, azar y listas|Crea una mini aventura
+La mascota|Clases y objetos|Cría una mascota pixel
+El taller|__init__ y métodos|Construye robots con piezas propias
+Herencia|Herencia|Árbol de familias de monstruos
+La carrera|Ordenar y buscar|Ordena coches en una carrera
+Jefe final: tu juego|Proyecto final|Crea tu propio minijuego`.split('\n').map(s=>s.split('|'));
+let P={st:{},lives:3};try{P=JSON.parse(localStorage.getItem('pylearn'))||P}catch(e){}
+const save=()=>{try{localStorage.setItem('pylearn',JSON.stringify(P))}catch(e){}};
+const hud=()=>{const n=Object.values(P.st).reduce((a,b)=>a+b,0);$('#hud').innerHTML=`<span role="img" aria-label="${P.lives} vidas">${'♥'.repeat(P.lives)}<i>${'♡'.repeat(3-P.lives)}</i></span> &nbsp;★ ${n}`};
+const hx=(cx,cy,r)=>[0,1,2,3,4,5].map(k=>{const a=Math.PI/3*k-Math.PI/6;return(cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1)}).join(' ');
+function drawMap(){
+ const cn=LV.findIndex((_,i)=>!P.st[i+1]),pos=[];let y=0;
+ LV.forEach((_,i)=>{y+=i%5?78:112;pos.push([+(180+95*Math.sin(i*.85)).toFixed(1),y])});
+ let s=`<polyline class="pa" points="${pos.map(p=>p.join(',')).join(' ')}"/>`;
+ LV.forEach((l,i)=>{const[x,y]=pos[i],big=(i+1)%5==0,r=big?36:26,d=P.st[i+1],c=i==cn;
+  if(i%5==0)s+=`<text class="wl" x="16" y="${y-52}">Mundo ${i/5+1}: ${WN[i/5]}</text>`;
+  s+=`<g class="n ${d?'done':c?'cur':'lk'}" role="button" tabindex="0" data-i="${i}" aria-label="Nivel ${i+1}: ${l[0]}${d?', '+d+' estrellas':''}">${big?`<polygon class="rg" points="${hx(x,y,r+7)}"/>`:''}<polygon points="${hx(x,y,r)}"/><text x="${x}" y="${y+7}" text-anchor="middle">${i+1}</text>${d?`<text class="sr" x="${x}" y="${y+r+16}" text-anchor="middle">${'★'.repeat(d)}</text>`:''}</g>`});
+ $('#hx').setAttribute('viewBox',`0 0 360 ${y+70}`);$('#hx').innerHTML=s;
+}
+function openLv(i){
+ if(i==0)return start();
+ const l=LV[i];$('#dw').textContent=`Mundo ${Math.floor(i/5)+1}: ${WN[Math.floor(i/5)]}`;$('#dt').textContent=`Nivel ${i+1}: ${l[0]}`;
+ $('#dc').innerHTML=`<b>Aprenderás:</b> ${l[1]}`;$('#dm').innerHTML=`<b>Minijuego:</b> ${l[2]}`;$('#dg').showModal();
+}
+$('#hx').addEventListener('click',e=>{const n=e.target.closest('.n');if(n)openLv(+n.dataset.i)});
+$('#hx').addEventListener('keydown',e=>{const n=e.target.closest('.n');if(n&&(e.key=='Enter'||e.key==' ')){e.preventDefault();openLv(+n.dataset.i)}});
+$('#dx').onclick=()=>$('#dg').close();
+// --- Mini-intérprete de un subconjunto de Python: llamadas, variables, for/range, + - * ---
+function pyrun(src,api){
+ const L=src.split('\n').map((t,i)=>({n:i+1,d:t.search(/\S|$/),s:t.trim()})).filter(l=>l.s&&l.s[0]!='#');
+ const V={};let st=0;const E=(l,m)=>{throw{line:l.n,msg:m}};
+ const ev=(s,l)=>{const t=s.match(/"[^"]*"|'[^']*'|\d+\.?\d*|\w+|[+\-*]/g)||[];
+  const v=x=>x==null?E(l,'Falta un valor'):/^["']/.test(x)?x.slice(1,-1):/^\d/.test(x)?+x:x in V?V[x]:E(l,'La variable «'+x+'» todavía no existe');
+  let r=v(t[0]);for(let j=1;j<t.length;j+=2)r=t[j]=='+'?r+v(t[j+1]):t[j]=='-'?r-v(t[j+1]):r*v(t[j+1]);return r};
+ const blk=(i,d)=>{while(i<L.length&&L[i].d>=d){const l=L[i];let m;
+  if(l.d>d)E(l,'Sangría inesperada: revisa los espacios al inicio de la línea');
+  if(++st>500)E(l,'Demasiados pasos: ¿hay un bucle infinito?');
+  if(m=l.s.match(/^for (\w+) in range\((.+)\):$/)){const k=ev(m[2],l),b=i+1;
+   if(!(b<L.length&&L[b].d>d))E(l,'Después de los dos puntos (:) hace falta una línea con sangría');
+   let e=b;if(k<=0)while(e<L.length&&L[e].d>=L[b].d)e++;
+   for(let q=0;q<k;q++){V[m[1]]=q;e=blk(b,L[b].d)}i=e}
+  else if(m=l.s.match(/^(\w+) = (.+)$/)){V[m[1]]=ev(m[2],l);i++}
+  else if(m=l.s.match(/^(\w+)\((.*)\)$/)){
+   if(!api[m[1]])E(l,'La función '+m[1]+'() no existe. Revisa cómo la has escrito');
+   try{api[m[1]](...(m[2].trim()?m[2].split(',').map(a=>ev(a,l)):[]))}catch(x){if(typeof x=='string')E(l,x);throw x}i++}
+  else E(l,'No entiendo esta línea. ¿Falta un paréntesis o los dos puntos?')}return i};
+ try{blk(0,L.length?L[0].d:0);return{lines:L.length}}catch(x){if(x.line)return{err:x,lines:L.length};throw x}}
+// --- Minijuego 1: dron granjero (pixel art en canvas) ---
+const cv=$('#cv'),g=cv.getContext('2d'),RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const PAL={k:'#1b1f3b',c:'#5ad1ff',w:'#fff',g:'#9aa3b2',y:'#d9b44a',n:'#7a4b2a',s:'#5a3a22',G:'#3fb34f',r:'#ff5d73'};
+const SP={d:['gg....gg','.kkkkkk.','kkcwwckk','.kkkkkk.','..k..k..'],
+ p:['........','.y....y.','..y..y..','...yy...','....n...','....n...','.ssnnss.','........'],
+ q:['...rr...','..rrrr..','...rr...','.GG.n.GG','..GGnGG.','....n...','.ssnnss.','........']};
+const spr=(a,x,y)=>a.forEach((row,j)=>[...row].forEach((ch,i)=>{if(ch!='.'){g.fillStyle=PAL[ch];g.fillRect(x+i*4,y+j*4,4,4)}}));
+const PL=[1,2,3,4],sl=ms=>new Promise(r=>setTimeout(r,ms));
+let S={x:0,tx:0,wet:new Set(),drop:0},busy=false;
+function draw(t){requestAnimationFrame(draw);if($('#lv').hidden)return;
+ S.x+=(S.tx-S.x)*.18;
+ g.fillStyle='#8fd3ff';g.fillRect(0,0,224,80);
+ g.fillStyle='#fff';[[16,14,28],[150,26,32],[92,8,16]].forEach(c=>g.fillRect(c[0],c[1],c[2],8));
+ g.fillStyle='#4caf50';g.fillRect(0,80,224,6);g.fillStyle='#6b4423';g.fillRect(0,86,224,42);
+ g.fillStyle='#593a1d';for(let i=0;i<22;i++)g.fillRect((i*37)%216,92+(i*23)%30,6,4);
+ g.fillStyle='#596275';g.fillRect(0,76,32,4);
+ PL.forEach(p=>spr(S.wet.has(p)?SP.q:SP.p,p*32,48));
+ spr(SP.d,Math.round(S.x*32),16+(RM?0:Math.round(Math.sin(t/300)*3)));
+ const left=S.drop-performance.now();
+ if(left>0){const f=1-left/400;g.fillStyle='#4aa8ff';[0,1].forEach(k=>g.fillRect(Math.round(S.x*32)+10+k*8,40+Math.round(f*32)+k*6,4,4))}}
+requestAnimationFrame(draw);
+const out=(m,c)=>{const o=$('#out');o.textContent=m;o.className=c||''};
+const START='# El dron empieza en el hangar (casilla 0).\n# Los cultivos están en las casillas 1, 2, 3 y 4.\navanzar()\nregar()\n';
+function reset(){S={x:0,tx:0,wet:new Set(),drop:0};out('')}
+async function go(){
+ if(busy)return;reset();busy=true;$('#go').disabled=true;
+ const acts=[],sim={x:0,wet:new Set()};
+ const api={avanzar(){if(sim.x>=6)throw'El dron se sale del campo';sim.x++;acts.push('m')},
+  regar(){if(!PL.includes(sim.x))throw'Aquí no hay ningún cultivo que regar';sim.wet.add(sim.x);acts.push('w')}};
+ const r=pyrun($('#ed').value,api);
+ for(const a of acts){if(a=='m'){S.tx++;await sl(450)}else{S.drop=performance.now()+400;await sl(450);S.wet.add(S.tx)}}
+ const n=PL.filter(p=>sim.wet.has(p)).length;
+ if(!r.err&&n==4){const st=r.lines<=8?3:r.lines<=10?2:1;P.st[1]=Math.max(P.st[1]||0,st);save();hud();
+  out(`¡Cultivos regados! ${'★'.repeat(st)}  (${r.lines} líneas)\n${st<3?'Prueba con 8 líneas o menos para las 3 estrellas.\n':''}¿Y con 100 cultivos? En el nivel 11 aprenderás a repetir sin copiar y pegar.`,'g')}
+ else{P.lives--;let m=r.err?`Línea ${r.err.line}: ${r.err.msg}`:`Faltan ${4-n} cultivos por regar. Sigue avanzando y regando.`;
+  if(P.lives<1){P.lives=3;m+='\nTe has quedado sin vidas. Las hemos recargado: inténtalo otra vez.'}
+  save();hud();out(m,'e')}
+ busy=false;$('#go').disabled=false}
+function start(){$('#map').hidden=true;$('#lv').hidden=false;$('#bk').hidden=false;$('#ttl').lastChild.textContent='Nivel 1';if(!$('#ed').value)$('#ed').value=START;reset();scrollTo(0,0)}
+$('#bk').onclick=()=>{$('#lv').hidden=true;$('#map').hidden=false;$('#bk').hidden=true;$('#ttl').lastChild.textContent='PyLearn';drawMap();hud();const c=$('.n.cur');if(c)c.scrollIntoView({block:'center'})};
+$('#go').onclick=go;$('#rs').onclick=()=>{if(!busy)reset()};
+drawMap();hud();{const c=$('.n.cur');if(c)c.scrollIntoView({block:'center'})}
+</script></body></html>

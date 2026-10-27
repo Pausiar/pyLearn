@@ -1,0 +1,310 @@
+/* Hallmark · v2.0.0 · app screen · genre: playful · surface: absolute
+ * shape: app screen · theme: custom, the brief's palette
+ * nav: top bar, wordmark or back, lives and stars, settings in a sheet
+ * screen: hex path of forty nodes and a level panel with canvas, editor and console
+ * states: idle, running, success, error · built: PyLearn phase 0 */
+/* Hallmark · pre-emit critique: P4 H4 E5 S4 R5 V3 · weakest: V, first build in the log, so variety has nothing to differ from */
+/* Hallmark · waive 7b · surface: absolute, 40 and 41 pass · PyLearn's brief fixes #ffffff cards and #000000 paper */
+
+:root {
+  color-scheme: light;
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --text-xs: 0.875rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1rem;
+  --text-lg: 1.1875rem;
+  --text-xl: 1.4375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.125rem;
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.35;
+  --leading-body: 1.5;
+
+  --space-1: 0.125rem;
+  --space-2: 0.25rem;
+  --space-3: 0.5rem;
+  --space-4: 0.75rem;
+  --space-5: 1rem;
+  --space-6: 1.25rem;
+  --space-7: 1.5rem;
+  --space-8: 2rem;
+  --space-9: 2.5rem;
+  --space-10: 3rem;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+
+  --control: 2.75rem;
+  --control-sm: 2.5rem;
+  --bar: 3.25rem;
+  --page-max: 52rem;
+  --map-max: 26rem;
+  --copy-max: 65ch;
+
+  --color-bg: #f5f5f7;
+  --color-surface: #ffffff;
+  --color-surface-2: #ececf0;
+  --color-ink: #1d1d1f;
+  --color-muted: #6e6e73;
+  --color-accent: #0071e3;
+  --color-accent-ink: #ffffff;
+  --color-accent-text: #0066cc;
+  --color-accent-fill: #0071e3;
+  --color-accent-fill-hover: #0062c4;
+  --color-accent-fill-active: #0059b3;
+  --color-done: #248a3d;
+  --color-done-ink: #1a7f37;
+  --color-locked: #d2d2d7;
+  --color-danger: #d70015;
+  --color-border: rgba(0, 0, 0, 0.09);
+  --color-border-strong: #8a8a8e;
+  --color-scrim: rgba(0, 0, 0, 0.45);
+  --color-focus: #0066cc;
+  --shadow-sheet: 0 18px 48px rgba(0, 0, 0, 0.18);
+
+  --dur-micro: 120ms;
+  --dur-short: 200ms;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --color-bg: #000000;
+    --color-surface: #1c1c1e;
+    --color-surface-2: #2c2c2e;
+    --color-ink: #f5f5f7;
+    --color-muted: #a1a1a6;
+    --color-accent: #0071e3;
+    --color-accent-ink: #ffffff;
+    --color-accent-text: #0a84ff;
+    --color-accent-fill: #0071e3;
+    --color-accent-fill-hover: #0062c4;
+    --color-accent-fill-active: #0059b3;
+      --color-done: #248a3d;
+    --color-done-ink: #30d158;
+    --color-locked: #3a3a3c;
+    --color-danger: #ff6961;
+    --color-border: rgba(255, 255, 255, 0.13);
+    --color-border-strong: #6e6e73;
+    --color-scrim: rgba(0, 0, 0, 0.6);
+    --color-focus: #0a84ff;
+    --shadow-sheet: 0 18px 48px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #000000;
+  --color-surface: #1c1c1e;
+  --color-surface-2: #2c2c2e;
+  --color-ink: #f5f5f7;
+  --color-muted: #a1a1a6;
+  --color-accent: #0071e3;
+  --color-accent-ink: #ffffff;
+  --color-accent-text: #0a84ff;
+  --color-accent-fill: #0071e3;
+  --color-accent-fill-hover: #0062c4;
+  --color-accent-fill-active: #0059b3;
+  --color-done: #248a3d;
+  --color-done-ink: #30d158;
+  --color-locked: #3a3a3c;
+  --color-danger: #ff6961;
+  --color-border: rgba(255, 255, 255, 0.13);
+  --color-border-strong: #6e6e73;
+  --color-scrim: rgba(0, 0, 0, 0.6);
+  --color-focus: #0a84ff;
+  --shadow-sheet: 0 18px 48px rgba(0, 0, 0, 0.5);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: clip;
+  scroll-padding-top: calc(var(--bar) + env(safe-area-inset-top, 0px));
+  -webkit-text-size-adjust: 100%;
+  scrollbar-color: var(--color-muted) var(--color-bg);
+}
+
+body {
+  margin: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  overflow-x: clip;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p,
+figure,
+fieldset {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.022em;
+  line-height: var(--leading-tight);
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+
+h1 {
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+h2 {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+h3 {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+p {
+  max-width: var(--copy-max);
+}
+
+a {
+  color: var(--color-accent-text);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 26%, transparent);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.icon {
+  display: block;
+  flex: none;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control);
+  padding-inline: var(--space-6);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-micro) var(--ease),
+    transform var(--dur-micro) var(--ease);
+}
+
+.btn--primary {
+  background: var(--color-accent-fill);
+  border-color: var(--color-accent-fill);
+  color: var(--color-accent-ink);
+}
+
+.btn--primary:hover {
+  background: var(--color-accent-fill-hover);
+  border-color: var(--color-accent-fill-hover);
+}
+
+.btn--primary:active {
+  background: var(--color-accent-fill-active);
+  border-color: var(--color-accent-fill-active);
+  transform: scale(0.985);
+}
+
+.btn--secondary {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+  color: var(--color-ink);
+}
+
+.btn--quiet {
+  color: var(--color-ink);
+}
+
+.btn--danger {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.btn--secondary:hover,
+.btn--quiet:hover,
+.btn--danger:hover {
+  background: var(--color-surface-2);
+}
+
+.btn--secondary:active,
+.btn--quiet:active,
+.btn--danger:active {
+  transform: scale(0.985);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn:active {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* Respuestas de sistema que pide Apple: más contraste y menos transparencia. */
+@media (prefers-contrast: more) {
+  :root {
+    --color-border: var(--color-border-strong);
+    --color-muted: var(--color-ink);
+  }
+}
