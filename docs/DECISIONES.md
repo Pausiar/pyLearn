@@ -169,6 +169,9 @@ decide el resultado y devuelve la traza que el lienzo reproduce.
 - **Diálogos**: `.sheet:not([open])` devuelve el `display: none` a un `<dialog>` cerrado. Sin esa
   regla, el `display: flex` del panel ganaba al estilo del navegador y los ajustes aparecían al
   final de la página, debajo del mapa.
+- **Código en los enunciados**: las historias y pistas son prosa con Python incrustado y sin marcas.
+  Un detector ligero (`levels/statement.ts`) separa llamadas, asignaciones, bloques y palabras clave
+  para pintarlos en monoespaciada; lo que va entre «» es salida esperada y no se toca.
 - **Anti-copia del enunciado**: copiar el texto del enunciado deja en el portapapeles una frase de
   broma (`DECOY_TEXT`) en lugar del texto. Es una decisión de producto del encargo; no impide leer,
   seleccionar ni usar lectores de pantalla.

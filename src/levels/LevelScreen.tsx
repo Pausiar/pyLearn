@@ -7,6 +7,7 @@ import type { SceneHandle } from '../engine/scene'
 import { run as runProgram } from '../interp/run'
 import { levelById, worldById } from './catalog'
 import { playableLevel } from './registry'
+import { StatementText } from './StatementText'
 import { starsForLines } from './stars'
 import type { PlayableLevel } from './types'
 
@@ -153,10 +154,14 @@ function PlayableScreen({
           {`Nivel ${level.id}: ${level.title}`}
         </h1>
         <p className="level__meta">{`Mundo ${world?.id ?? 1}: ${world?.title ?? 'Despegue'}. ${level.concept}.`}</p>
-        <p className="level__story">{level.story}</p>
+        <p className="level__story">
+          <StatementText text={level.story} />
+        </p>
         <details className="hint">
           <summary>Pista</summary>
-          <p>{level.hint}</p>
+          <p>
+            <StatementText text={level.hint} />
+          </p>
         </details>
       </header>
 
