@@ -13,7 +13,7 @@ interface PixelCanvasProps {
   draw: SceneDraw
   /** El lienzo se redibuja con requestAnimationFrame mientras no haya movimiento reducido. */
   animate?: boolean
-  /** Suaviza el escalado en pantallas pequeñas; el dibujo ya es nítido a 2×. */
+  /** Suaviza el escalado en pantallas pequeñas; el dibujo ya es nítido a 3×. */
   smooth?: boolean
 }
 

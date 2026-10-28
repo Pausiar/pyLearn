@@ -11,7 +11,11 @@ interface TopBarProps {
 export function TopBar({ route, progress, onOpenSettings }: TopBarProps) {
   return (
     <header className="topbar">
-      <div className="topbar__inner">
+      <div
+        className={
+          route.name === 'level' ? 'topbar__inner topbar__inner--wide' : 'topbar__inner'
+        }
+      >
         {route.name === 'level' ? (
           <a className="topbar__back" href="#/">
             <ChevronLeftIcon />

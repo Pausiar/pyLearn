@@ -20,6 +20,10 @@
   padding: var(--space-2) var(--space-5);
 }
 
+.topbar__inner--wide {
+  max-width: var(--page-max-wide);
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
@@ -97,6 +101,11 @@
   max-width: var(--page-max);
   margin-inline: auto;
   padding: var(--space-6) var(--space-5) var(--space-10);
+}
+
+/* La pantalla de nivel aprovecha el ancho para el minijuego y el editor. */
+.shell.level {
+  max-width: var(--page-max-wide);
 }
 
 .page-head {
@@ -316,8 +325,9 @@
 
 @media (min-width: 60rem) {
   .work {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
     align-items: start;
+    gap: var(--space-6);
   }
 }
 
@@ -333,10 +343,16 @@
   margin-bottom: var(--space-4);
 }
 
+.field {
+  width: 100%;
+  max-width: 42rem;
+  margin-inline: auto;
+}
+
 .field__canvas {
   display: block;
   width: 100%;
-  max-width: 28rem;
+  max-width: 42rem;
   height: auto;
   margin-inline: auto;
   border-radius: var(--radius-md);
@@ -344,7 +360,7 @@
   image-rendering: pixelated;
 }
 
-/* Las escenas con texto se dibujan al doble y se muestran suaves, no pixeladas. */
+/* Las escenas con texto se dibujan al triple y se muestran suaves, no pixeladas. */
 .field__canvas--smooth {
   image-rendering: auto;
 }
@@ -371,6 +387,12 @@
   tab-size: 4;
   resize: vertical;
   caret-color: var(--color-accent);
+}
+
+@media (min-width: 60rem) {
+  .editor__area {
+    min-height: 22rem;
+  }
 }
 
 .editor__note {
