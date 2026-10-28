@@ -219,20 +219,6 @@
   fill: var(--color-accent);
 }
 
-.node__ring {
-  fill: none;
-  stroke: var(--color-locked-deep);
-  stroke-width: 3;
-}
-
-.node--done .node__ring {
-  stroke: var(--color-done-deep);
-}
-
-.node--current .node__ring {
-  stroke: var(--color-accent-deep);
-}
-
 .node__check {
   fill: none;
   stroke: var(--color-accent-ink);

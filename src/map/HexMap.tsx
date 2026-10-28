@@ -96,10 +96,6 @@ export function HexMap({ progress, onPick }: HexMapProps) {
                 onPick(level)
               }}
             >
-              {level.boss ? (
-                <polygon className="node__ring" points={hexPoints(node.x, node.y, radius + 10)} />
-              ) : null}
-
               <polygon className="node__side" points={hexPoints(node.x, node.y + SIDE, radius)} />
               <polygon className="node__shape" points={hexPoints(node.x, node.y, radius)} />
               <polygon
